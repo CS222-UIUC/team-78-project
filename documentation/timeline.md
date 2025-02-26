@@ -3,15 +3,15 @@
 ### Key:
 - <span style="color: grey;">[ ] **Backlog**</span>
 - <span style="color: orange;">[-] **In-Progress**</span>
-- <span style="color: green;">[+] **Completed<**/span>
+- <span style="color: green;">[x] **Completed<**/span>
 
 ---
 
 ## Week 1 (2/24 - 2/28)
 - [ ] Set up Github Repo
-- [*] Create initial static page, publish website, and update git
-- [*] Create Documentation page and update weekly
-- [*] Learn to use the yfinance library (API)
+- [x] Create initial static page, publish website, and update git
+- [x] Create Documentation page and update weekly
+- [x] Learn to use the yfinance library (API)
 
 ---
 
