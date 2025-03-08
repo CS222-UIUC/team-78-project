@@ -8,7 +8,7 @@
 ---
 
 ## Week 1 (2/24 - 2/28)
-- [ ] Set up Github Repo
+- [x] Set up Github Repo
 - [x] Create initial static page, publish website, and update git
 - [x] Create Documentation page and update weekly
 - [x] Learn to use the yfinance library (API)

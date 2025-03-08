@@ -10,6 +10,9 @@
 ##### `npm install`
 ##### `export NODE_OPTIONS=--openssl-legacy-provider`
 ##### `npm start`
+###### above is basic stuff, after is for running specific code which may change based on what libraries we use
+##### `pip install flask yfinance numpy`
+
 
 ##### go to localhost:3000 or http://10.195.123.81:3000
 
