@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, render_template
-import yfiannce as yf
+import yfinance as yf
+import numpy as np 
 
 
 
@@ -11,7 +12,7 @@ def index():
 
 
 """
-- Route below fetches the stock hisotry based on the ticker and period, which is set to 1 year by default
+- Route below fetches the stock history based on the ticker and period, which is set to 1 year by default
 """
 
 @app.route('/stock/<stock_ticker>/<period>', methods = ['GET'])
@@ -24,11 +25,22 @@ def search_stock_data(stock_ticker, period = '1y'):
 
     return {"Ticker error: Ticker not found"}
 
+
+@app.route('/stock_info/<stock_ticker>/', method = ['GET'])
+def get_other_stock_data():
+    stock = yf.Ticker(stock_ticker)
+
+    stock_info = stock.info 
+
+    """
+    This will return relevant stock information in json format
+    """
+    return None
+
 """
 - App route will expect the model type, stock ticker, and period in time.
 - This route will return the results of a specific model
 """
-
 @app.route('/predict/<model>/<ticker>/<period>')
 def predict_future_stock_price(model, ticker, period = "1y"):
     stock = yf.Ticker(stock_ticker)
@@ -42,6 +54,9 @@ def predict_future_stock_price(model, ticker, period = "1y"):
     """
     The prices data and X (time) will be sent to our models python file and the model results will be returned
     """
+
+
+@app.route('/')
 
 
 
