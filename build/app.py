@@ -28,7 +28,7 @@ def search_stock_data(stock_ticker, period = '1y'):
 
 @app.route('/stock_info/<stock_ticker>/', method = ['GET'])
 def get_other_stock_data():
-    stock = yf.Ticker(stock_ticker)
+    stock = yf.Ticker(ticker)
 
     stock_info = stock.info 
 
@@ -43,7 +43,7 @@ def get_other_stock_data():
 """
 @app.route('/predict/<model>/<ticker>/<period>')
 def predict_future_stock_price(model, ticker, period = "1y"):
-    stock = yf.Ticker(stock_ticker)
+    stock = yf.Ticker(ticker)
 
     stock_history = stock.history(period = period)  
 
@@ -54,10 +54,6 @@ def predict_future_stock_price(model, ticker, period = "1y"):
     """
     The prices data and X (time) will be sent to our models python file and the model results will be returned
     """
-
-
-@app.route('/')
-
 
 
 
