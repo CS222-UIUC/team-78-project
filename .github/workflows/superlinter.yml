@@ -27,3 +27,7 @@ jobs:
           VALIDATE_JAVASCRIPT: true
           VALIDATE_HTML: true
           VALIDATE_CSS: true
+          VALIDATE_YAML: true
+          VALIDATE_JAVASCRIPT_ES: true
+          VALIDATE_MARKDOWN: true
+          FILTER_REGEX_EXCLUDE: ^(node_modules|vendor|build)/
