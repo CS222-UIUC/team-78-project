@@ -35,7 +35,7 @@ jobs:
         pip install -r requirements.txt
 
     - name: Run tests
-      run:  python -m unittest #if this doesn't work try npm run
+      run:  python -m unittest #try npm run or python -m unittest discover
 
 #if this doesnt work
 # - name: Install dependencies
