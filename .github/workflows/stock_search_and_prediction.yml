@@ -15,6 +15,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Set up cache
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
@@ -28,3 +36,10 @@ jobs:
 
     - name: Run tests
       run:  python -m unittest #if this doesn't work try npm run
+
+#if this doesnt work
+# - name: Install dependencies
+#       run: |
+#         python -m pip install --upgrade pip
+#         pip install setuptools==57.0.0 wheel==0.36.2
+#         pip install -r requirements.txt
