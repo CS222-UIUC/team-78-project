@@ -18,7 +18,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.x'  # latest python vers in 3.
+        python-version: '3.11'  # 3.x does latest version in 3
 
     - name: Install dependencies # to ensure dependencies are up to date run pip freeze > requirements.txt
       run: |
