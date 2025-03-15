@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, render_template
 import yfinance as yf
 import numpy as np 
-
+import models
 
 
 app = Flask(__name__)
@@ -50,6 +50,8 @@ def predict_future_stock_price(model, ticker, period = "1y"):
     prices_data_y = stock_history['Close'].values
     values = len(prices_data_y)
     time_days_X = np.arange(values).reshape(-1, 1)
+
+    
 
     """
     The prices data and X (time) will be sent to our models python file and the model results will be returned
