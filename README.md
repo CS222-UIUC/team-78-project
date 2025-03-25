@@ -15,8 +15,9 @@
 
 ### Run Instructions
 ##### cd to team-78-project folder
-##### `export NODE_OPTIONS=--openssl-legacy-provider` 
-##### `npm start`
+<!-- ##### `export NODE_OPTIONS=--openssl-legacy-provider`  -->
+<!-- ##### `npm start` -->
+###### python app.py
 
 ##### go to localhost:3000 or http://10.195.123.81:3000
 

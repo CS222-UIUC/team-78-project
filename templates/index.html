@@ -1,0 +1,171 @@
+<!-- development note! had to move some things around and reconfigure build for project 
+ to include style things that allow us to make nav bar and pages and such so for now all the content is here but 
+ will later be split up and organized into the respective css and js files   -->
+
+ <!-- use  python app.py to run when in tem 78 proj folder -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Analysis Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #007686;
+            overflow: hidden;
+            color: white;
+            padding: 10px;
+        }
+        .navbar a {
+            color: white;
+            padding: 14px 20px;
+            text-decoration: none;
+            float: left;
+        }
+        .navbar a:hover {
+            background-color: #ddd;
+            color: rgb(0, 8, 255);
+        }
+        .logo-profile-container {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .logo {
+            width: 100px;  
+            height: auto;
+        }
+
+        .profile {
+            width: 100px;  
+            height: auto;
+            cursor: pointer; 
+        }
+
+        /* dropdown for profile options */
+        .dropdown {
+            display: none; /*  hide unless profile clicked */
+            position: absolute;
+            top: 180px; /* dropdown loc under prof pic */
+            right: 10px;
+            background-color: #333;
+            color: white;
+            border-radius: 5px;
+            padding: 10px;
+            width: 150px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .dropdown a, .dropdown button {
+            display: block;
+            color: white;
+            padding: 10px;
+            text-decoration: none;
+            border: none;
+            background: none;
+            text-align: left;
+            width: 100%;
+        }
+
+        .dropdown a:hover, .dropdown button:hover {
+            background-color: #444;
+        }
+
+        .dropdown button {
+            background-color: red;
+            border-radius: 5px;
+        }
+
+        .content {
+            padding: 20px;
+            flex-grow: 1; 
+        }
+        .footer {
+            background-color: #000000;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+        .top-left {
+            position: absolute;
+            top: 80px;
+            left: 10px;
+            width: 100px;  /*size tbd*/
+            height: auto;
+        }
+
+        .top-right {
+            position: absolute;
+            top: 80px;
+            right: 10px;
+            width: 100px;  /*size tbd*/
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- navigation bar -->
+    <div class="navbar">
+        <a href="/">Home</a>
+        <a href="#">Favorites</a>  <!-- link when page is made  -->
+        <a href="#">Models</a>  <!-- link when page is made  -->
+        <a href="#">Stock Analysis Page</a>  <!-- link when page is made  -->
+        <a href="#">Stock Comparison Page</a>  <!-- link when page is made  -->
+        <a href="#">Account Settings</a>  <!-- link when page is made  -->
+    </div>
+
+    <!-- logo + profile imgs -->
+    <div class="logo-profile-container">
+        <img src="{{ url_for('static', filename='images/fillerimg.png') }}" alt="Logo" class="logo">
+        <img src="{{ url_for('static', filename='images/fillerimg.png') }}" alt="Profile" class="profile" onclick="toggleDropdown()">
+    </div>
+
+    <!-- profile dropdown-->
+    <div class="dropdown" id="profileDropdown">
+        <a href="#">Account Settings</a>   <!-- eventually link to account settings page-->
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <!-- body text on page -->
+    <div class="content">
+        <h1>Welcome to the Stock Analysis Tool!</h1>
+        <p>This is the homepage. Please refer to our navigation bar to begin.</p>
+        <p>*site in progress*</p>
+    </div>
+
+     <!-- footer -->
+     <div class="footer">
+        <p>&copy; Stock Analysis Tool. CS222 Group 78 Spring. All rights reserved.</p>
+    </div>
+
+    <script>
+        function toggleDropdown() { 
+            console.log('Dropdown toggled');  
+            var dropdown = document.getElementById('profileDropdown');
+            if (dropdown.style.display === 'block') {
+                dropdown.style.display = 'none';
+            } else {
+                dropdown.style.display = 'block';
+            }
+        }
+
+        // temp logout action
+        function logout() {
+            alert("Logging out...");
+        }
+    </script>
+
+</body>
+</html>
