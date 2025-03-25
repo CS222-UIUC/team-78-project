@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import apiService from "../services/apiService";
+
+
 
 const StockSearch = () => {
   const [query, setQuery] = useState("");
@@ -9,9 +12,10 @@ const StockSearch = () => {
     if (!query) return;
     setLoading(true);
     try {
-      // Placeholder API call (replace with actual backend endpoint)
-      const response = await fetch(`/api/search?query=${query}`);
+      const response = await fetch(`http://localhost:5000/api/search?query=${query}`);
       const data = await response.json();
+      console.log("API response:", data); // <-- ADD THIS
+  
       setResults(data.stocks || []);
     } catch (error) {
       console.error("Error fetching stock data:", error);
@@ -19,7 +23,7 @@ const StockSearch = () => {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className="max-w-lg mx-auto mt-10 p-4">
       <h2 className="text-xl font-bold mb-4">Stock Search</h2>
@@ -56,3 +60,5 @@ const StockSearch = () => {
 };
 
 export default StockSearch;
+
+// TODO: case insensitive search, dropdown - show a basic display of what the backend api is showing. refer to the figma ui. 
