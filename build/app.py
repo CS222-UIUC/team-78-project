@@ -7,14 +7,17 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import numpy as np 
 import models
-
+import plotly.graph_objs as go
+import plotly.graph_objs as go
+import plotly.io as pio
+from plotly.offline import plot
 
 app = Flask(__name__, template_folder='../public')
 
 # Home page
 @app.route('/')
 def index():
-    return render_template('public/index.html') 
+    return render_template('index.html') 
 
 
 """
@@ -32,7 +35,7 @@ def search_stock_data(stock_ticker, period = '1y'):
     return {"Ticker error: Ticker not found"}
 
 
-@app.route('/stock_info/<stock_ticker>/', method = ['GET'])
+@app.route('/stock_info/<stock_ticker>/', methods = ['GET'])
 def get_other_stock_data():
     stock = yf.Ticker(ticker)
 
@@ -81,11 +84,11 @@ def format_market_cap(market_cap):
         return f"{market_cap:.2f}"
     
     
-@app.route('/stock/<ticker>', methods=['GET'])
-def get_stock_data(ticker):
+@app.route('/stock/<ticker>/info', methods=['GET'])
+def get_stock_info(ticker):
     try:
   
-        # Fetch stock data
+        # Fetch stock info
         stock = yf.Ticker(ticker)
         info = stock.info
 
@@ -114,69 +117,47 @@ def get_stock_data(ticker):
     
 @app.route('/stock/<ticker>/graph', methods=['GET'])
 def get_stock_graph(ticker):
-    try:    
-        # Get period from query parameters, default to 1 month
-        period = request.args.get("period", "1mo")
+    try:
+        user_period = request.args.get("period", "1mo")
+        valid_periods = {"1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"}
+        if user_period not in valid_periods:
+            return jsonify({"error": f"Invalid period '{user_period}'."}), 400
 
-        # Validate the period input
-        valid_periods = {"1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "max"}
-        if period not in valid_periods:
-            return jsonify({"error": f"Invalid period '{period}'. Valid options: {', '.join(valid_periods)}"}), 400
-        
         stock = yf.Ticker(ticker)
-        
-        # Handle one day differently 
-        if period == "1d":
-            hist = stock.history(period = period, interval = "5m")
-        else: 
-            # Otherwise just use interval of one day
-            hist = stock.history(period=period)
-        # If there's not enough data, return an error
-        if hist.empty:
-            return jsonify({"error": f"No historical data found for {ticker} over period '{period}'."}), 404
+        hist = stock.history(period=user_period)
 
-        # Round Close prices
+        if hist.empty:
+            return jsonify({"error": "No historical data found."}), 404
+
         hist["Close"] = hist["Close"].round(2)
         hist["Date"] = hist.index
-      
-    
-        # Optionally resample for long periods
-        long_periods = {"2y", "5y", "10y", "max"}
-        if period in long_periods:
-            hist = hist.resample("1W").mean()  # Weekly average
 
-        # Plot
-        fig, ax = plt.subplots(figsize=(12, 8))
-        ax.plot(hist["Date"], hist["Close"], linestyle='-', label=ticker.upper())
+        trace = go.Scatter(x=hist["Date"], y=hist["Close"], mode="lines+markers", name="Close")
 
-        # Format date axis
-        
-        if period in {"1d", "5d"}:
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d %H:%M'))
-        elif period in {"1mo", "3mo", "6mo"}:
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
-        elif period in {"1y", "2y"}:
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %Y'))
-        else:
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+        layout = go.Layout(
+            title=f"{ticker.upper()} Close Price ({user_period})",
+            xaxis=dict(
+                title="Date",
+                rangeselector=dict(
+                    buttons=[
+                        dict(count=7, label="1w", step="day", stepmode="backward"),
+                        dict(count=1, label="1m", step="month", stepmode="backward"),
+                        dict(count=3, label="3m", step="month", stepmode="backward"),
+                        dict(count=6, label="6m", step="month", stepmode="backward"),
+                        dict(count=1, label="1y", step="year", stepmode="backward"),
+                        dict(step="all")
+                    ]
+                ),
+                rangeslider=dict(visible=True),
+                type="date"
+            ),
+            yaxis=dict(title="Close Price ($)"),
+            template="plotly_white"
+        )
 
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Close Price")
-        ax.set_title(f"{ticker.upper()} Stock Price History ({period})")
-        ax.grid(True)
-        ax.legend()
-
-        # Rotate and format ticks
-        plt.xticks(rotation=45)
-        plt.tight_layout()
-
-        # Save to buffer
-        img = io.BytesIO()
-        plt.savefig(img, format='png')
-        img.seek(0)
-        plt.close()
-
-        return send_file(img, mimetype='image/png')
+        fig = go.Figure(data=[trace], layout=layout)
+        graph_html = pio.to_html(fig, full_html=False)
+        return graph_html
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
