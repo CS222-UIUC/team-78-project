@@ -9,7 +9,7 @@ import numpy as np
 import models
 
 
-app = Flask(__name__, template_folder='../public')
+app = Flask(__name__, template_folder='/Users/advaykadam/team-78-project/')
 
 # Home page
 @app.route('/')
@@ -32,7 +32,7 @@ def search_stock_data(stock_ticker, period = '1y'):
     return {"Ticker error: Ticker not found"}
 
 
-@app.route('/stock_info/<stock_ticker>/', method = ['GET'])
+@app.route('/stock_info/<stock_ticker>/', methods = ['GET'])
 def get_other_stock_data():
     stock = yf.Ticker(ticker)
 
