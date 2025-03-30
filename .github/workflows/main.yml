@@ -1,6 +1,13 @@
 name: Pylint and Test
 
-on: [push]
+
+on:
+  push:
+    branches:
+      - backend  
+  pull_request:
+    branches:
+      - backend 
 
 jobs:
   lint-and-test:
