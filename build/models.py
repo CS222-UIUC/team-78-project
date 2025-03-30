@@ -1,12 +1,17 @@
+import numpy as np
+import pandas as pd
+import yfinance as yf
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from statsmodels.tsa.api import ExponentialSmoothing, Holt
-import yfinance as yf
-import numpy as np
 from statsmodels.tsa.arima.model import ARIMA
-import pandas as pd
 
-class train_model:
+
+class TrainModel:
+    """
+    Class for training and making predictions with different time series models
+    """
+
     def __init__(self, data, model_name, test_ratio=0.2):
         data.index = pd.to_datetime(data.index)
         self.date = np.array((data.index - data.index.min()).days).reshape(-1, 1)
@@ -14,89 +19,75 @@ class train_model:
         self.model_name = model_name
         self.test_ratio = test_ratio
         self.model = None
-    """
-    Splits the data into training and testing datasets
-    """
 
     def generate_split_data(self):
-
-        X_train, X_test, y_train, y_test = train_test_split(self.date, self.close, test_size=self.test_ratio)
+        """
+        Splits the data into training and testing
+        """
+        X_train, X_test, y_train, y_test = train_test_split(
+            self.date, self.close, test_size=self.test_ratio
+        )
         return X_train, y_train, X_test, y_test
 
-    """
-    Fits model on trianing data based on model type
-    """
-
     def generate_model(self):
+        """
+        Fits model on training data based on model type
+        """
         X_train, y_train, X_test, y_test = self.generate_split_data()
 
         if self.model_name == "linear_regression":
             self.model = LinearRegression()
-
-
             self.model.fit(X_train, y_train)
             return self.model
 
-        elif self.model_name == "exponential_smoothing":
-            y_train_flat = y_train.flatten()
-
-            self.model = ExponentialSmoothing(y_train_flat, trend="add", seasonal=None).fit()
+        if self.model_name == "exponential_smoothing":
+            self.model = ExponentialSmoothing(
+                y_train.flatten(), trend="add", seasonal=None
+            ).fit()
             return self.model
 
-        elif self.model_name == "holt":
+        if self.model_name == "holt":
             self.model = Holt(y_train.flatten()).fit()
-            
             return self.model
 
-        elif self.model_name == "ARIMA":
-            
-            self.model = ARIMA(y_train.flatten(), order=(2, 2, 2)).fit()  
-                        
+        if self.model_name == "ARIMA":
+            self.model = ARIMA(y_train.flatten(), order=(2, 2, 2)).fit()
             return self.model
-        
+
         return "Invalid Model"
 
-    """
-    Retrieved model paramerters
-
-    """
-
     def get_model_params(self):
-       
-        if isinstance(self.model, LinearRegression):
-            return {"coefficients": self.model.coef_.tolist(), "intercept": self.model.intercept_.tolist()}
-        
-        elif self.model_name == "holt" or self.model_name == "exponential_smoothing" or  isinstance(self.model, (ExponentialSmoothing, Holt)):
+        """
+        Retrieves model parameters based on specified model
+        """
+        if self.model_name == "linear_regression" or isinstance(self.model, LinearRegression):
+            return {
+                "coefficients": self.model.coef_.tolist(),
+                "intercept": self.model.intercept_.tolist(),
+            }
+
+        if self.model_name == "holt" or self.model_name == "exponential_smoothing" or isinstance(self.model, (ExponentialSmoothing, Holt)):
             return self.model.params
 
-        elif self.name == "ARIMA" or isinstance(self.model, ARIMA):
+        if self.model_name == "ARIMA" or isinstance(self.model, ARIMA):
             return {"params": self.model.params.tolist(), "aic": self.model.aic}
 
-
         return None
-    """
-    return predictions based on number of predictions inputted
-    """
 
     def make_predictions(self, num_preds):
         """
-        Make future predictions using the trained model.
+        Make future predictions using the trained model
         """
-        if isinstance(self.model, LinearRegression):
-            date_idx_end = len(self.date)
-            date_idx_end_preds = len(self.date) + num_preds
-            future_dates = np.arange(date_idx_end, date_idx_end_preds).reshape(-1, 1)
-            
+        if self.model_name == "linear_regression" or isinstance(self.model, LinearRegression):
+            future_dates = np.arange(len(self.date), len(self.date) + num_preds).reshape(-1, 1)
             predictions = self.model.predict(future_dates).flatten().tolist()
             return {"future_predictions": predictions}
 
-        elif self.model_name == "holt" or self.model_name == "exponential_smoothing" or isinstance(self.model, (ExponentialSmoothing, Holt)):
+        if self.model_name == "holt" or self.model_name == "exponential_smoothing" or isinstance(self.model, (ExponentialSmoothing, Holt)):
             predictions = self.model.forecast(num_preds).tolist()
-
-            
             return {"future_predictions": predictions}
 
-        elif self.model_name == "ARIMA" or isinstance(self.model, ARIMA):
+        if self.model_name == "ARIMA" or isinstance(self.model, ARIMA):
             predictions = self.model.forecast(steps=num_preds).tolist()
             return {"future_predictions": predictions}
 
@@ -104,4 +95,18 @@ class train_model:
 
 
 if __name__ == "__main__":
-    pass
+    apple_data = yf.Ticker("AAPL")
+    apple_df = apple_data.history(period="1y")
+    
+    mod_train = TrainModel(apple_df, "holt")
+    model = mod_train.generate_model()
+
+    assert model != "Invalid Model", "Model has been generated"
+
+    params = mod_train.get_model_params()
+    print(params)
+    assert params is not None, "Model Parameters are accessible"
+
+    predictions = mod_train.make_predictions(5)
+    print(predictions)
+    assert predictions is not None, "Model Predictions are accessible"
