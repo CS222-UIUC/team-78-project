@@ -76,6 +76,8 @@ class train_model:
         elif self.name == "ARIMA" or isinstance(self.model, ARIMA):
             return {"params": self.model.params.tolist(), "aic": self.model.aic}
 
+
+        return None
     """
     return predictions based on number of predictions inputted
     """
@@ -102,17 +104,8 @@ class train_model:
             predictions = self.model.forecast(steps=num_preds).tolist()
             return {"future_predictions": predictions}
 
-        return {"Error": "Prediction not Permitted"}
+        return None
 
 
 if __name__ == "__main__":
-    apple_data = yf.Ticker("AAPL")
-    period = "1y"
-    apple_df = apple_data.history(period=period)
-    
-    mod_train = train_model(apple_df, "holt")
-
-    mod_train.generate_model()
-
-    print(mod_train.get_model_params())
-    print(mod_train.make_predictions(5))
+    pass
