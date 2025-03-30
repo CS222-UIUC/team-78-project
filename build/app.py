@@ -115,25 +115,45 @@ def get_stock_info(ticker):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+# Route to serve a stock price graph for a given ticker
 @app.route('/stock/<ticker>/graph', methods=['GET'])
 def get_stock_graph(ticker):
     try:
+        # Get time period from the request parameters, default 1 month
         user_period = request.args.get("period", "1mo")
+
+        # Valid periods allowed by the yfinance API
         valid_periods = {"1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "ytd", "max"}
+
+        # Invalid request period
         if user_period not in valid_periods:
             return jsonify({"error": f"Invalid period '{user_period}'."}), 400
 
+    
         stock = yf.Ticker(ticker)
+
+        # Fetch historical data
         hist = stock.history(period=user_period)
 
+        # If no data is returned
         if hist.empty:
             return jsonify({"error": "No historical data found."}), 404
 
+        # Round 'Close' prices to two decimal places
         hist["Close"] = hist["Close"].round(2)
+
+        # Add a 'Date' column 
         hist["Date"] = hist.index
 
-        trace = go.Scatter(x=hist["Date"], y=hist["Close"], mode="lines+markers", name="Close")
+        # Create a line chart trace with markers for the 'Close' prices
+        trace = go.Scatter(
+            x=hist["Date"], 
+            y=hist["Close"], 
+            mode="lines+markers", 
+            name="Close"
+        )
 
+        # Define the layout of the plot including title, axis labels, and date range selector
         layout = go.Layout(
             title=f"{ticker.upper()} Close Price ({user_period})",
             xaxis=dict(
@@ -155,13 +175,17 @@ def get_stock_graph(ticker):
             template="plotly_white"
         )
 
+        # Create figure
         fig = go.Figure(data=[trace], layout=layout)
+
+        # Convert the figure to HTML (without full HTML document) to embed in a webpage
         graph_html = pio.to_html(fig, full_html=False)
+
         return graph_html
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
 if __name__ == "__main__":
     app.run(debug=True)
 
