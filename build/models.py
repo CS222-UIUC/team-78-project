@@ -9,15 +9,11 @@ import pandas as pd
 class train_model:
     def __init__(self, data, model_name, test_ratio=0.2):
         data.index = pd.to_datetime(data.index)
-        
         self.date = np.array((data.index - data.index.min()).days).reshape(-1, 1)
-        
         self.close = data["Close"].values.reshape(-1, 1)
-        
         self.model_name = model_name
         self.test_ratio = test_ratio
         self.model = None
-
     """
     Splits the data into training and testing datasets
     """
