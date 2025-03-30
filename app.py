@@ -6,23 +6,23 @@ app = Flask(__name__)
 def index():
     return render_template('index.html') 
 
-@app.route('/favorites.html')
+@app.route('/favorites')
 def favorites():
     return render_template('favorites.html')
 
-@app.route('/models.html')
+@app.route('/models')
 def models():
     return render_template('models.html')
 
-@app.route('/stock_analysis.html')
+@app.route('/stock_analysis')
 def stock_analysis():
     return render_template('stock_analysis.html')
 
-@app.route('/stock_comparison.html')
+@app.route('/stock_comparison')
 def stock_comparison():
     return render_template('stock_comparison.html')
 
-@app.route('/account_settings.html')
+@app.route('/account_settings')
 def account_settings():
     return render_template('account_settings.html')
 
