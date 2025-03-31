@@ -1,0 +1,137 @@
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f9fafb;
+    margin: 0;
+    padding: 0;
+    color: #1c1c1e;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #0052ff;
+    padding: 12px 24px;
+    color: white;
+}
+
+.navbar a {
+    color: white;
+    margin-right: 20px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.navbar a:hover {
+    color: #cce0ff;
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-right: 24px;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+}
+
+.search-bar input[type="text"] {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: none;
+    outline: none;
+    font-size: 0.9rem;
+}
+
+.search-bar button {
+    background: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-left: 6px;
+    font-size: 0.9rem;
+}
+
+.search-bar button:hover {
+    background-color: #e0e0e0;
+}
+
+.content {
+    padding: 40px 24px;
+    max-width: 1000px;
+    margin: auto;
+}
+
+h1 {
+    font-size: 2rem;
+    margin-bottom: 12px;
+}
+
+.footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #1c1c1e;
+    color: #f0f0f0;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+.profile-container {
+    position: relative;
+    display: inline-block;
+    margin-left: 16px;
+}
+
+.profile-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    object-fit: cover;
+    border: 2px solid white;
+}
+
+.dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 50px;
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    width: 160px;
+    z-index: 999;
+    padding: 10px;
+}
+
+.dropdown a,
+.dropdown button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    color: #1c1c1e;
+    font-size: 14px;
+}
+
+.dropdown a:hover,
+.dropdown button:hover {
+    background-color: #f2f2f2;
+}
+
+.dropdown button {
+    color: red;
+}

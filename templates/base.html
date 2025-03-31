@@ -1,144 +1,49 @@
 <!-- use  python app.py to run when in team 78 proj folder -->
-
 <!DOCTYPE html>
 <html lang="en">
-    
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Stock Analysis Tool</title>
-        
-        <!-- transfer this to external css -->
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                margin: 0;
-                padding: 0;
-            }
-            .navbar {
-                background-color: #007686;
-                overflow: hidden;
-                color: white;
-                padding: 10px;
-            }
-            .navbar a {
-                color: white;
-                padding: 14px 20px;
-                text-decoration: none;
-                float: left;
-            }
-            .navbar a:hover {
-                background-color: #ddd;
-                color: rgb(0, 8, 255);
-            }
-            .logo-profile-container {
-                display: flex;
-                justify-content: space-between;
-                padding: 10px;
-                margin-top: 10px;
-            }
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Analysis Tool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Optional: Flowbite Components -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
 
-            .logo {
-                width: 100px;  
-                height: auto;
-            }
-
-            .profile {
-                width: 100px;  
-                height: auto;
-                cursor: pointer; 
-            }
-
-            /* dropdown for profile options */
-            .dropdown {
-                display: none; /*  hide unless profile clicked */
-                position: absolute;
-                top: 180px; /* dropdown loc under prof pic */
-                right: 10px;
-                background-color: #333;
-                color: white;
-                border-radius: 5px;
-                padding: 10px;
-                width: 150px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-            }
-
-            .dropdown a, .dropdown button {
-                display: block;
-                color: white;
-                padding: 10px;
-                text-decoration: none;
-                border: none;
-                background: none;
-                text-align: left;
-                width: 100%;
-            }
-
-            .dropdown a:hover, .dropdown button:hover {
-                background-color: #444;
-            }
-
-            .dropdown button {
-                background-color: red;
-                border-radius: 5px;
-            }
-
-            .content {
-                padding: 20px;
-                flex-grow: 1; 
-            }
-            .footer {
-                background-color: #000000;
-                color: white;
-                text-align: center;
-                padding: 10px;
-                position: relative;
-                bottom: 0;
-                width: 100%;
-            }
-            .top-left {
-                position: absolute;
-                top: 80px;
-                left: 10px;
-                width: 100px;  /*size tbd*/
-                height: auto;
-            }
-
-            .top-right {
-                position: absolute;
-                top: 80px;
-                right: 10px;
-                width: 100px;  /*size tbd*/
-                height: auto;
-            }
-        </style>
-    </head>
+</head>
     <body>
 
-        <!-- navigation bar -->
-    
-        <div class="navbar">   <!-- all routes linked in app.py -->
-            <a href="/">Home</a>
-            <a href="/favorites">Favorites</a> 
-            <a href="/models">Models</a> 
-            <a href="/stock_analysis">Stock Analysis</a> 
-            <a href="/stock_comparison">Stock Comparison</a> 
-            <a href="/account_settings">Account Settings</a> 
-        </div>
+        <!-- Navigation -->
+        <nav class="bg-blue-600 text-white px-6 py-3 flex justify-between items-center">
+            <div class="flex space-x-6 items-center">
+              <a href="/" class="text-xl font-semibold">📈 StockTool</a>
+              <a href="/" class="hover:text-blue-200">Home</a>
+              <a href="/favorites" class="hover:text-blue-200">Favorites</a>
+              <a href="/models" class="hover:text-blue-200">Models</a>
+              <a href="/stock_analysis" class="hover:text-blue-200">Analysis</a>
+              <a href="/stock_comparison" class="hover:text-blue-200">Comparison</a>
+              <a href="/account_settings" class="hover:text-blue-200">Settings</a>
+            </div>
+          
+            <div class="flex items-center space-x-4">
+              <form action="/search" method="GET" class="flex items-center bg-white rounded-md px-2">
+                <input type="text" name="q" placeholder="Search..." class="p-1 text-sm text-black focus:outline-none" />
+                <button type="submit">🔍</button>
+              </form>
+          
+              <div class="relative">
+                <img src="{{ url_for('static', filename='images/fillerimg.png') }}" onclick="toggleDropdown()" class="w-10 h-10 rounded-full cursor-pointer border-2 border-white object-cover" />
+                <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-50 text-black">
+                  <a href="/account_settings" class="block px-4 py-2 hover:bg-gray-100">Account Settings</a>
+                  <button onclick="logout()" class="block px-4 py-2 hover:bg-gray-100 text-red-600 w-full text-left">Logout</button>
+                </div>
+              </div>
+            </div>
+          </nav>
+          
         
-
-        <!-- logo + profile imgs -->
-        <div class="logo-profile-container">
-            <img src="{{ url_for('static', filename='images/fillerimg.png') }}" alt="Logo" class="logo">
-            <img src="{{ url_for('static', filename='images/fillerimg.png') }}" alt="Profile" class="profile" onclick="toggleDropdown()">
-        </div>
-
-        <!-- profile dropdown-->
-        <div class="dropdown" id="profileDropdown">
-            <a href="/account-settings.html">Account Settings</a>  
-            <button onclick="logout()">Logout</button>
-        </div>
-
         <!-- body text  -->
         <div class="content">
             <h1>{% block page_heading %}Welcome to the Stock Analysis Tool!{% endblock %}</h1>
@@ -170,3 +75,23 @@
 
     </body>
 </html>
+
+<script>
+    function toggleDropdown() {
+      const dropdown = document.getElementById("profileDropdown");
+      dropdown.classList.toggle("hidden");
+    }
+  
+    function logout() {
+      alert("Logging out...");
+    }
+  
+    document.addEventListener("click", function (event) {
+      const dropdown = document.getElementById("profileDropdown");
+      const profilePic = document.querySelector("img[onclick='toggleDropdown()']");
+      if (!dropdown.contains(event.target) && !profilePic.contains(event.target)) {
+        dropdown.classList.add("hidden");
+      }
+    });
+  </script>
+  
