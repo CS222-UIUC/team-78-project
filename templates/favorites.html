@@ -2,8 +2,21 @@
 <html lang="en">
 
 {% extends "base.html" %}
-{% block title %}Favorites{% endblock %}
-{% block page_heading %}Your Favorite Stocks{% endblock %}
-{% block page_description %}Here you can view and manage your saved stocks.{% endblock %}
+{% block page_heading %}Favorites{% endblock %}
+{% block page_description %}
+    {% if favorites %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            {% for stock in favorites %}
+                <div class="bg-white shadow rounded-md p-4">
+                    <h3 class="text-lg font-semibold">{{ stock.name }} ({{ stock.symbol }})</h3>
+                    <p class="text-blue-600 font-bold">{{ stock.price }} {{ stock.currency }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>You haven’t added any favorites yet!</p>
+    {% endif %}
+{% endblock %}
+
 
 </html> 
