@@ -4,14 +4,14 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../build')))
 
-from models import train_model
+from models import TrainModel
 
 def test_models():
     apple_data = yf.Ticker("AAPL")
     period = "1y"
     apple_df = apple_data.history(period=period)
     
-    mod_train = train_model(apple_df, "holt")
+    mod_train = TrainModel(apple_df, "holt")
 
     model = mod_train.generate_model()
 
