@@ -1,3 +1,7 @@
+"""
+Library for model training and predictions based on user input
+"""
+
 import numpy as np
 import pandas as pd
 import yfinance as yf
@@ -24,20 +28,20 @@ class TrainModel:
         """
         Splits the data into training and testing
         """
-        X_train, X_test, y_train, y_test = train_test_split(
+        x_train, ___, y_train, ___ = train_test_split(
             self.date, self.close, test_size=self.test_ratio
         )
-        return X_train, y_train, X_test, y_test
+        return x_train, y_train
 
     def generate_model(self):
         """
         Fits model on training data based on model type
         """
-        X_train, y_train, X_test, y_test = self.generate_split_data()
+        x_train, y_train = self.generate_split_data()
 
         if self.model_name == "linear_regression":
             self.model = LinearRegression()
-            self.model.fit(X_train, y_train)
+            self.model.fit(x_train, y_train)
             return self.model
 
         if self.model_name == "exponential_smoothing":
@@ -66,7 +70,7 @@ class TrainModel:
                 "intercept": self.model.intercept_.tolist(),
             }
 
-        if self.model_name == "holt" or self.model_name == "exponential_smoothing" or isinstance(self.model, (ExponentialSmoothing, Holt)):
+        if self.model_name in ("holt", "exponential_smoothing"):
             return self.model.params
 
         if self.model_name == "ARIMA" or isinstance(self.model, ARIMA):
@@ -83,7 +87,7 @@ class TrainModel:
             predictions = self.model.predict(future_dates).flatten().tolist()
             return {"future_predictions": predictions}
 
-        if self.model_name == "holt" or self.model_name == "exponential_smoothing" or isinstance(self.model, (ExponentialSmoothing, Holt)):
+        if self.model_name in ("holt", "exponential_smoothing"):
             predictions = self.model.forecast(num_preds).tolist()
             return {"future_predictions": predictions}
 
@@ -97,8 +101,7 @@ class TrainModel:
 if __name__ == "__main__":
     apple_data = yf.Ticker("AAPL")
     apple_df = apple_data.history(period="1y")
-    
-    mod_train = TrainModel(apple_df, "holt")
+    mod_train = TrainModel(apple_df, "linear_regression")
     model = mod_train.generate_model()
 
     assert model != "Invalid Model", "Model has been generated"
@@ -107,6 +110,6 @@ if __name__ == "__main__":
     print(params)
     assert params is not None, "Model Parameters are accessible"
 
-    predictions = mod_train.make_predictions(5)
-    print(predictions)
-    assert predictions is not None, "Model Predictions are accessible"
+    predictions_linreg = mod_train.make_predictions(5)
+    print(predictions_linreg)
+    assert predictions_linreg is not None, "Model Predictions are accessible"
