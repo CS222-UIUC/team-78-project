@@ -1,12 +1,37 @@
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session
+import requests
 import yfinance as yf 
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey' 
 
+#  polygon.io has stock api for freee -> xayif58234@buides.com is email and password 
+#  key: W1wT4puBL66ipVKe_BNHnV7JYGWMwEpX	 
+
+NEWS_API_KEY = "W1wT4puBL66ipVKe_BNHnV7JYGWMwEpX"
+
 @app.route('/')
 def index():
-    return render_template('index.html') 
+    url = "https://api.polygon.io/v2/reference/news"
+    params = {
+        "ticker": "AAPL",  # default = aapl
+        "limit": 5,        # num articles
+        "apiKey": NEWS_API_KEY
+    }
+    response = requests.get(url, params=params)
+
+    if response.status_code == 200:
+        news_data = response.json().get("results", [])
+        for article in news_data:
+            if 'published_utc' in article:
+                article['formatted_date'] = datetime.strptime(
+                    article['published_utc'], "%Y-%m-%dT%H:%M:%SZ"
+                ).strftime("%B %d, %Y, %I:%M %p")
+    else:
+        news_data = [] 
+
+    return render_template('index.html', articles=news_data)
 
 @app.route('/models')
 def models():
@@ -46,6 +71,8 @@ def search():
             print(f"Error fetching stock info: {e}")
 
     return render_template("search_results.html", query=query, result=result)
+
+
 
 @app.route('/favorite', methods=['POST'])
 def favorite():

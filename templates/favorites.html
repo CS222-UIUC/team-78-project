@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 
-{% extends "base.html" %}
-{% block page_heading %}Favorites{% endblock %}
+<!-- need to add feature to  -->
+{% extends "base.html" %} 
+{% block page_heading %}<h1 class="text-center font-bold text-4xl">Favorites</h1>{% endblock %}
 {% block page_description %}
     {% if favorites %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -14,7 +15,7 @@
             {% endfor %}
         </div>
     {% else %}
-        <p>You haven’t added any favorites yet!</p>
+        <p>You haven't added any favorites yet!</p>
     {% endif %}
 {% endblock %}
 
