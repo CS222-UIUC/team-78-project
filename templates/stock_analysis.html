@@ -4,6 +4,86 @@
 {% extends "base.html" %}
 {% block title %}Stock Analysis{% endblock %}
 {% block page_heading %}<h1 class="text-center font-bold text-4xl">Stock Analysis</h1>{% endblock %}
-{% block page_description %}Dive into detailed stock analysis to make informed investment decisions.{% endblock %}
+{% block page_description %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Analysis Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body class="bg-gray-100 py-8">
+
+    <div class="max-w-4xl mx-auto bg-white shadow-md rounded-md p-6">
+
+        <div class="mb-6">
+            <form id="stockForm" class="flex items-center space-x-4">
+                <input type="text" id="ticker" name="ticker" placeholder="Enter Stock Ticker (e.g., AAPL)"
+                       class="p-2 text-sm text-black focus:outline-none border border-gray-300 rounded-md w-full">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Search
+                </button>
+            </form>
+        </div>
+
+        <div id="stockInfo" class="hidden mb-6 bg-gray-100 p-4 rounded-md shadow">
+            <h2 class="text-xl font-semibold mb-4">Stock Information</h2>
+            <p><strong>Name:</strong> <span id="stockName"></span></p>
+            <p><strong>Ticker:</strong> <span id="stockTicker"></span></p>
+            <p><strong>Current Price:</strong> <span id="stockPrice"></span></p>
+            <p><strong>Market Cap:</strong> <span id="stockMarketCap"></span></p>
+            <p><strong>Sector:</strong> <span id="stockSector"></span></p>
+            <p><strong>Industry:</strong> <span id="stockIndustry"></span></p>
+        </div>
+
+        <div id="stockGraph" class="hidden mb-6 bg-gray-100 p-4 rounded-md shadow">
+            <h2 class="text-xl font-semibold mb-4">Stock Graph</h2>
+            <img id="graphImage" src="" alt="Stock Graph" class="rounded-md">
+        </div>
+
+        <div id="errorMessage" class="hidden mb-6 text-red-600 bg-gray-100 p-4 rounded-md shadow"></div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $("#stockForm").submit(function (e) {
+                e.preventDefault(); 
+
+                const ticker = $("#ticker").val().toUpperCase();
+                const stockInfoUrl = `/stock/${ticker}`;
+                const stockGraphUrl = `/stock/${ticker}/graph`;
+
+                $.ajax({
+                    url: stockInfoUrl,
+                    method: "GET",
+                    success: function (data) {
+                        $("#stockName").text(data.name);
+                        $("#stockTicker").text(data.ticker);
+                        $("#stockPrice").text(data.current_price);
+                        $("#stockMarketCap").text(data.market_cap);
+                        $("#stockSector").text(data.sector);
+                        $("#stockIndustry").text(data.industry);
+
+                        $("#stockInfo").removeClass("hidden"); 
+                        $("#errorMessage").addClass("hidden");
+                    },
+                    error: function (xhr) {
+                        $("#errorMessage").text(xhr.responseJSON.error || "An error occurred.");
+                        $("#errorMessage").removeClass("hidden"); 
+                        $("#stockInfo").addClass("hidden"); 
+                        $("#stockGraph").addClass("hidden"); 
+                    }
+                });
+
+                $("#graphImage").attr("src", stockGraphUrl); 
+                $("#stockGraph").removeClass("hidden");
+            });
+        });
+    </script>
+</body>
+</html>
+
+{% endblock %}
 
 </html> 

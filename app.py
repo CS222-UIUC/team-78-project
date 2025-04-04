@@ -116,57 +116,6 @@ def favorites():
             print(f"Error fetching favorite stock info: {e}")
 
     return render_template('favorites.html', favorites=favorite_data)
-
-
-
-# app = Flask(__name__, template_folder='/Users/advaykadam/team-78-project/')
-
-# Home page
-# @app.route('/')
-# def index():
-#     return render_template('public/index.html') 
-
-
-"""
-- Route below fetches the stock history based on the ticker and period, which is set to 1 year by default
-"""
-
-# @app.route('/stock/<stock_ticker>/<period>', methods = ['GET'])
-# def search_stock_data(stock_ticker, period = '1y'):
-#     stock = yf.Ticker(stock_ticker)
-#     stock_history = stock.history(period = period)
-
-#     if not hist.empty:
-#         return jsonify(hist['Close'].to_dict())
-
-#     return {"Ticker error: Ticker not found"}
-
-
-# @app.route('/stock_info/<stock_ticker>/', methods = ['GET'])
-# def get_other_stock_data():
-#     stock = yf.Ticker(ticker)
-
-#     stock_info = stock.info 
-
-#     """
-#     This will return relevant stock information in json format
-#     """
-#     return None
-
-"""
-- App route will expect the model type, stock ticker, and period in time.
-- This route will return the results of a specific model
-"""
-# @app.route('/predict/<model>/<ticker>/<period>')
-# def predict_future_stock_price(model, ticker, period = "1y"):
-#     stock = yf.Ticker(ticker)
-
-#     stock_history = stock.history(period = period)  
-
-#     prices_data_y = stock_history['Close'].values
-#     values = len(prices_data_y)
-#     time_days_X = np.arange(values).reshape(-1, 1)
-
     
 
 """
