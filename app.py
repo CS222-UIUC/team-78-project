@@ -1,16 +1,15 @@
-from flask import Flask, jsonify, render_template, request, redirect, url_for, session
+from flask import Flask, jsonify, render_template, request, redirect, url_for, session, send_file
 import requests
 import yfinance as yf 
 from datetime import datetime
-from flask import Flask, request, jsonify, render_template, send_file
-import yfinance as yf
 import matplotlib
 import io
 matplotlib.use('Agg')  # Use a non-GUI backend
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import numpy as np 
-import models
+import plotly.express as px
+import plotly.io as pio
 
 
 app = Flask(__name__)
@@ -118,14 +117,6 @@ def favorites():
     return render_template('favorites.html', favorites=favorite_data)
     
 
-"""
-The prices data and X (time) will be sent to our models python file and the model results will be returned
-"""
-
-
-
-
-
 def format_market_cap(market_cap):
     """Convert market cap to a human-readable format."""
     if market_cap is None:
@@ -203,39 +194,26 @@ def get_stock_graph(ticker):
         long_periods = {"2y", "5y", "10y", "max"}
         if period in long_periods:
             hist = hist.resample("1W").mean()  # Weekly average
+        # Interactive Plotly chart
+        fig = px.line(
+            hist,
+            x=hist.index,
+            y="Close",
+            title=f"{ticker.upper()} Stock Price History ({period})",
+            labels={"x": "Date", "Close": "Close Price"},
+        )
 
-        # Plot
-        fig, ax = plt.subplots(figsize=(12, 8))
-        ax.plot(hist["Date"], hist["Close"], linestyle='-', label=ticker.upper())
+        fig.update_layout(
+            xaxis_title="Date",
+            yaxis_title="Close Price",
+            hovermode="x unified",
+            template="plotly_white"
+        )
 
-        # Format date axis
-        
-        if period in {"1d", "5d"}:
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d %H:%M'))
-        elif period in {"1mo", "3mo", "6mo"}:
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
-        elif period in {"1y", "2y"}:
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %Y'))
-        else:
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+        # Convert to HTML div
+        graph_html = pio.to_html(fig, full_html=False)
 
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Close Price")
-        ax.set_title(f"{ticker.upper()} Stock Price History ({period})")
-        ax.grid(True)
-        ax.legend()
-
-        # Rotate and format ticks
-        plt.xticks(rotation=45)
-        plt.tight_layout()
-
-        # Save to buffer
-        img = io.BytesIO()
-        plt.savefig(img, format='png')
-        img.seek(0)
-        plt.close()
-
-        return send_file(img, mimetype='image/png')
+        return jsonify({"graph_html": graph_html})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
