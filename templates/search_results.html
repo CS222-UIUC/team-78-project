@@ -1,8 +1,18 @@
 {% extends "base.html" %}
-{% block page_heading %}Search Results{% endblock %}
+{% block page_heading %}Search Results for {{ query }} {% endblock %}
 {% block page_description %}
+    <body>
+        <div class="flex items-center space-x-4">
+
+                <form action="/search" method="GET" class="flex items-center bg-white rounded-md px-4 py-2 shadow-md max-w-full mx-auto w-full">
+                    <input type="text" name="q" placeholder="Search..." class="p-2 text-sm text-black focus:outline-none w-full" />
+                    <button type="submit" class="ml-2 text-blue-600">🔍</button>
+                </form>
+                
+        </div>
+    </body>
     {% if result %}
-        <div class="max-w-md mx-auto bg-white shadow-md rounded-md p-6 mt-4 relative">
+        <div class="max-w-full mx-auto bg-white shadow-md rounded-md p-6 mt-4 relative">
             <!-- Heart Button -->
             <form method="POST" action="/favorite" class="absolute top-4 right-4">
                 <input type="hidden" name="symbol" value="{{ result.symbol }}">
