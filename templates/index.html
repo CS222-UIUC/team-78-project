@@ -1,0 +1,71 @@
+<!-- use  python app.py to run when in team 78 proj folder  -->
+
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock News</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<html lang="en">
+
+    {% extends "base.html" %}
+    {% block title %}Home Page{% endblock %}
+    {% block page_heading %}
+    <h1 class="text-center font-bold text-4xl">Stock Analysis Tool</h1>
+    {% endblock %}
+    
+    {% block page_description %}
+
+    <body>
+        <!-- search bar -->
+        <div class="flex items-center space-x-4">
+
+                <form action="/search" method="GET" class="flex items-center bg-white rounded-md px-4 py-2 shadow-md max-w-full mx-auto w-full">
+                    <input type="text" name="q" placeholder="Search..." class="p-2 text-sm text-black focus:outline-none w-full" />
+                    <button type="submit" class="ml-2 text-blue-600">🔍</button>
+                </form>
+        </div>
+
+        
+        <!-- news section -->
+        <div class="max-w-4xl mx-auto bg-white shadow-md rounded-md p-6 mt-6">
+            <h2 class="text-2xl font-bold mb-6">Latest Stock News</h2>
+        
+            {% if articles %}
+                <ul>
+                    {% for article in articles %}
+                    <li class="mb-6 flex items-start">
+                       
+                        {% if article.image_url %}
+                        <img src="{{ article.image_url }}" alt="News Image" class="w-24 h-24 object-cover rounded-md mr-4">
+                        {% endif %}
+        
+                        <div>
+                            <h3 class="text-xl font-semibold">{{ article.title }}</h3> 
+                            <p class="text-gray-600 text-sm mb-2">{{ article.formatted_date }}</p> 
+                            <a href="{{ article.article_url }}" class="text-blue-600 underline">Read more</a> 
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-red-600">No news articles available at the moment.</p>
+            {% endif %}
+        </div>
+        
+
+    </body>
+    
+    
+    {% endblock %}
+    
+    
+
+     
+    
+</html>
+
+
