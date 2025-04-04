@@ -5,9 +5,6 @@ from datetime import datetime
 import matplotlib
 import io
 matplotlib.use('Agg')  # Use a non-GUI backend
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-import numpy as np 
 import plotly.express as px
 import plotly.io as pio
 
@@ -177,27 +174,27 @@ def get_stock_graph(ticker):
         
         # Handle one day differently 
         if period == "1d":
-            hist = stock.history(period = period, interval = "5m")
+            historical_data = stock.history(period = period, interval = "5m")
         else: 
             # Otherwise just use interval of one day
-            hist = stock.history(period=period)
+            historical_data = stock.history(period=period)
         # If there's not enough data, return an error
-        if hist.empty:
+        if historical_data.empty:
             return jsonify({"error": f"No historical data found for {ticker} over period '{period}'."}), 404
 
         # Round Close prices
-        hist["Close"] = hist["Close"].round(2)
-        hist["Date"] = hist.index
+        historical_data["Close"] = historical_data["Close"].round(2)
+        historical_data["Date"] = historical_data.index
       
     
         # Optionally resample for long periods
         long_periods = {"2y", "5y", "10y", "max"}
         if period in long_periods:
-            hist = hist.resample("1W").mean()  # Weekly average
+            historical_data = historical_data.resample("1W").mean()  # Weekly average
         # Interactive Plotly chart
         fig = px.line(
-            hist,
-            x=hist.index,
+            historical_data,
+            x="Date",
             y="Close",
             title=f"{ticker.upper()} Stock Price History ({period})",
             labels={"x": "Date", "Close": "Close Price"},
