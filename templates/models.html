@@ -1,9 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 
-{% extends "base.html" %}
-{% block title %}Models{% endblock %}
-{% block page_heading %}<h1 class="text-center font-bold text-4xl">Models</h1>{% endblock %}
-{% block page_description %}Explore our predictive stock models to aid your analysis.{% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Analysis Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
 
-</html> 
+<body>
+    {% extends "base.html" %}
+    {% block title %}Stock Analysis Tool{% endblock %}
+    
+    {% block page_heading %}
+    <h1 class="text-center font-bold text-4xl mt-8">Stock Prediction and Modeling</h1>
+    {% endblock %}
+
+    {% block page_description %}
+    
+    <!-- Main content -->
+    <div class="flex justify-center items-center mt-8">
+        <!-- Form for stock prediction -->
+        <form action="{{ url_for('models') }}" method="POST" class="bg-white rounded-md px-8 py-6 shadow-md max-w-xl w-full">
+            <h2 class="text-2xl font-semibold text-center mb-6">Stock Prediction Setup</h2>
+            
+            <!-- Search Bar -->
+            <input type="text" name="q" placeholder="Enter stock symbol" class="p-3 text-sm text-black focus:outline-none w-full border border-gray-300 rounded-md mb-4" value="{{ ticker_query or '' }}" />
+
+            <!-- Time Period -->
+            <select name="time_period" class="p-3 text-sm text-black focus:outline-none w-full border border-gray-300 rounded-md mb-4">
+                <option value="1d" {% if time_period == '1y' %}selected{% endif %}>1 Year</option>
+                <option value="1w" {% if time_period == '2y' %}selected{% endif %}>2 Years</option>
+                <option value="1m" {% if time_period == '5y' %}selected{% endif %}>5 Years</option>
+                <option value="1y" {% if time_period == '10y' %}selected{% endif %}>10 Years</option>
+            </select>
+
+            <!-- Model Type -->
+            <select name="model_type" class="p-3 text-sm text-black focus:outline-none w-full border border-gray-300 rounded-md mb-4">
+                <option value="linear_regression" {% if model_type == 'linear_regression' %}selected{% endif %}>Linear Regression</option>
+                <option value="holt" {% if model_type == 'holt' %}selected{% endif %}>Holt's Linear</option>
+                <option value="exponential_smoothing" {% if model_type == 'exponential_smoothing' %}selected{% endif %}>Exponential Smoothing</option>
+                <option value="arima" {% if model_type == 'arima' %}selected{% endif %}>ARIMA</option>
+            </select>
+
+            <!-- Prediction Horizon -->
+            <input type="number" name="prediction_horizon" placeholder="Prediction Horizon (Months)" min="1" class="p-3 text-sm text-black focus:outline-none w-full border border-gray-300 rounded-md mb-6" value="{{ prediction_horizon or '' }}" />
+
+            <!-- Submit Button -->
+            <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 transition duration-300">Submit</button>
+        </form>
+    </div>
+    
+    <!-- Predictions Display -->
+    {% if predictions %}
+        <div class="mt-8">
+            <h3 class="text-2xl font-semibold text-center mb-6">Predictions for {{ ticker_query }}</h3>
+            <div class="bg-white rounded-md px-8 py-6 shadow-md max-w-xl mx-auto">
+                <h4 class="text-xl font-semibold mb-4">Predicted Stock Prices:</h4>
+                <ul class="space-y-2">
+                    {% for prediction in predictions['future_predictions'] %}
+                        <li class="text-lg">Prediction: {{ prediction }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% else %}
+        <div class="mt-8">
+            <h4 class="text-xl text-center text-gray-600">No predictions available. Please submit the form to generate predictions.</h4>
+        </div>
+    {% endif %}
+    
+    {% endblock %}
+    
+</body>
+</html>
