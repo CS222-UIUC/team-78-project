@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Caching Dependencies
         uses: actions/cache@v4
@@ -21,8 +21,9 @@ jobs:
       - name: Run Super-Linter
         uses: github/super-linter@v4
         env:
-          DEFAULT_BRANCH: backend
+      
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: false
           VALIDATE_PYTHON: true
           VALIDATE_JAVASCRIPT: true
           VALIDATE_HTML: true
@@ -30,4 +31,4 @@ jobs:
           VALIDATE_YAML: true
           VALIDATE_JAVASCRIPT_ES: true
           VALIDATE_MARKDOWN: true
-          FILTER_REGEX_EXCLUDE: ^(node_modules|vendor|build)/
+          FILTER_REGEX_EXCLUDE: ^node_modules/

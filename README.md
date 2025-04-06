@@ -15,8 +15,12 @@
 
 ### Run Instructions
 ##### cd to team-78-project folder
-##### `export NODE_OPTIONS=--openssl-legacy-provider` 
-##### `npm start`
+<!-- ##### `export NODE_OPTIONS=--openssl-legacy-provider`  -->
+<!-- ##### `npm start` -->
+###### cd into venv folder
+###### python app.py
+
+<!-- venvYOURNAME@wirelessprv-10-195-123-81 team-78-project %  ___ is an example of what terminal prompt should look like-->
 
 ##### go to localhost:3000 or http://10.195.123.81:3000
 

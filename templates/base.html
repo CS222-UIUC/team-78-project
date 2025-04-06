@@ -1,0 +1,98 @@
+<!-- use  python app.py to run when in team 78 proj folder -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Analysis Tool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+
+</head>
+    <body>
+
+        <!-- Navigation -->
+        <nav class="bg-blue-600 text-white px-6 py-3 flex justify-between items-center">
+            <div class="flex space-x-6 items-center">
+              <a href="/" class="text-xl font-semibold">📈 StockTool</a>
+              <a href="/" class="hover:text-blue-200">Home</a>
+              <a href="/favorites" class="hover:text-blue-200">Favorites</a>
+              <a href="/models" class="hover:text-blue-200">Models</a>
+              <a href="/stock_analysis" class="hover:text-blue-200">Analysis</a>
+              <a href="/stock_comparison" class="hover:text-blue-200">Comparison</a>
+              <a href="/account_settings" class="hover:text-blue-200">Settings</a>
+            </div>
+          
+            <div class="flex items-center space-x-4">
+              <!-- <form action="/search" method="GET" class="flex items-center bg-white rounded-md px-2">
+                <input type="text" name="q" placeholder="Search..." class="p-1 text-sm text-black focus:outline-none" />
+                <button type="submit">🔍</button>
+              </form> -->
+          
+              <div class="relative">
+                <img src="{{ url_for('static', filename='images/fillerimg.png') }}" onclick="toggleDropdown()" class="w-10 h-10 rounded-full cursor-pointer border-2 border-white object-cover" />
+                <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-50 text-black">
+                  <a href="/account_settings" class="block px-4 py-2 hover:bg-gray-100">Account Settings</a>
+                  <button onclick="login()" class="block px-4 py-2 hover:bg-gray-100 text-blue-600 w-full text-left">Sign-Up/Login</button>
+                  <button onclick="logout()" class="block px-4 py-2 hover:bg-gray-100 text-red-600 w-full text-left">Logout</button>
+                </div>
+              </div>
+            </div>
+          </nav>
+          
+        
+        <!-- body text  -->
+        <div class="content">
+            <h1>{% block page_heading %}Welcome to the Stock Analysis Tool!{% endblock %}</h1>
+            <p>{% block page_description %}This is the homepage. Please refer to our navigation bar to begin.{% endblock %}</p>
+        </div>
+        
+
+        <!-- footer -->
+        <div class="footer">
+            <p>&copy; Stock Analysis Tool. CS222 Group 78 Spring. All Rights Reserved.</p>
+        </div>
+
+        <script>
+            function toggleDropdown() { 
+                console.log('Dropdown toggled');  
+                var dropdown = document.getElementById('profileDropdown');
+                if (dropdown.style.display === 'block') {
+                    dropdown.style.display = 'none';
+                } else {
+                    dropdown.style.display = 'block';
+                }
+            }
+
+            // temp logout action
+            function logout() {
+                alert("Logging out...");
+            }
+        </script>
+
+    </body>
+</html>
+
+<script>
+    function toggleDropdown() {
+      const dropdown = document.getElementById("profileDropdown");
+      dropdown.classList.toggle("hidden");
+    }
+  
+    function logout() {
+      alert("Logging out...");
+    }
+  
+    document.addEventListener("click", function (event) {
+      const dropdown = document.getElementById("profileDropdown");
+      const profilePic = document.querySelector("img[onclick='toggleDropdown()']");
+      if (!dropdown.contains(event.target) && !profilePic.contains(event.target)) {
+        dropdown.classList.add("hidden");
+      }
+    });
+  </script>
+  
