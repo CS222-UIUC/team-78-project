@@ -4,6 +4,141 @@
 {% extends "base.html" %}
 {% block title %}Stock Analysis{% endblock %}
 {% block page_heading %}<h1 class="text-center font-bold text-4xl">Stock Analysis</h1>{% endblock %}
-{% block page_description %}Dive into detailed stock analysis to make informed investment decisions.{% endblock %}
+{% block page_description %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Analysis Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+
+<body class="bg-gray-100 py-8">
+    
+    <div class="max-w-4xl mx-auto bg-white shadow-md rounded-md p-6">
+
+        <div class="mb-6">
+            <form id="stockForm" class="flex items-center space-x-4">
+                <input type="text" id="ticker" name="ticker" placeholder="Enter Stock Ticker (e.g., AAPL)"
+                       class="p-2 text-sm text-black focus:outline-none border border-gray-300 rounded-md w-full">
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    Search
+                </button>
+            </form>
+        </div>
+
+        <div id="stockInfo" class="hidden mb-6 bg-gray-100 p-4 rounded-md shadow">
+            <h2 class="text-xl font-semibold mb-4">Stock Information</h2>
+            <p><strong>Name:</strong> <span id="stockName"></span></p>
+            <p><strong>Ticker:</strong> <span id="stockTicker"></span></p>
+            <p><strong>Current Price:</strong> <span id="stockPrice"></span></p>
+            <p><strong>Market Cap:</strong> <span id="stockMarketCap"></span></p>
+            <p><strong>Sector:</strong> <span id="stockSector"></span></p>
+            <p><strong>Industry:</strong> <span id="stockIndustry"></span></p>
+        </div>
+
+        <div id="rangeButtons" class="hidden mt-4 flex justify-between gap-2">
+            <p class="text-lg font-semibold mb-2">Select Time Period</p>
+            <div class="flex justify-between gap-2">
+                <button class="range-btn period-button flex-1 text-center p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" data-period="1d">1D</button>
+                <button class="range-btn period-button flex-1 text-center p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" data-period="5d">5D</button>
+                <button class="range-btn period-button flex-1 text-center p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" data-period="1mo">1M</button>
+                <button class="range-btn period-button flex-1 text-center p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" data-period="3mo">3M</button>
+                <button class="range-btn period-button flex-1 text-center p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" data-period="6mo">6M</button>
+                <button class="range-btn period-button flex-1 text-center p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" data-period="1y">1Y</button>
+                <button class="range-btn period-button flex-1 text-center p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" data-period="5y">5Y</button>
+                <button class="range-btn period-button flex-1 text-center p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" data-period="10y">10Y</button>
+                <button class="range-btn period-button flex-1 text-center p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" data-period="max">Max</button>
+            </div>
+        </div>
+
+        <div id="stockGraph" class="hidden mb-6 bg-gray-100 p-4 rounded-md shadow">
+            
+        </div>
+
+        <div id="errorMessage" class="hidden mb-6 text-red-600 bg-gray-100 p-4 rounded-md shadow"></div>
+    </div>
+    
+
+    <script>
+        let currentTicker = null;
+
+        function fetchAndRenderGraph(ticker, period = "1mo") {
+            // Save scroll position before updating the graph
+             const scrollPosition = $(window).scrollTop();
+
+            $.ajax({
+                url: `/stock/${ticker}/graph?period=${period}`,
+                method: "GET",
+                success: function (response) {
+                    
+                    $("#stockGraph").html(response.graph_html);
+                    $("#stockGraph").removeClass("hidden");
+                    // Restore scroll position after updating the graph
+                    $(window).scrollTop(scrollPosition);
+                    
+                },
+                error: function (xhr) {
+                    $("#errorMessage").text(xhr.responseJSON.error || "An error occurred.");
+                    $("#errorMessage").removeClass("hidden");
+                    $("#stockGraph").addClass("hidden");
+                }
+            });
+        }
+        
+        $(document).ready(function () {
+            $("#stockForm").submit(function (e) {
+                e.preventDefault(); 
+
+                const ticker = $("#ticker").val().toUpperCase();
+                currentTicker = ticker;  // Update the currentTicker variable
+                const stockInfoUrl = `/stock/${ticker}`;
+                
+
+                $.ajax({
+                    url: stockInfoUrl,
+                    method: "GET",
+                    success: function (data) {
+                        $("#stockName").text(data.name);
+                        $("#stockTicker").text(data.ticker);
+                        $("#stockPrice").text(data.current_price);
+                        $("#stockMarketCap").text(data.market_cap);
+                        $("#stockSector").text(data.sector);
+                        $("#stockIndustry").text(data.industry);
+
+                        $("#stockInfo").removeClass("hidden"); 
+                        $("#errorMessage").addClass("hidden");
+                        $("#rangeButtons").removeClass("hidden");
+
+                        fetchAndRenderGraph(ticker); // default to 1mo
+                    },
+                    error: function (xhr) {
+                        $("#errorMessage").text(xhr.responseJSON.error || "An error occurred.");
+                        $("#errorMessage").removeClass("hidden"); 
+                        $("#stockInfo").addClass("hidden"); 
+                        $("#stockGraph").addClass("hidden"); 
+                        // Hide buttons on error
+                        $("#rangeButtons").addClass("hidden");
+                    }
+                });
+
+                
+            });
+            // Handle period button clicks
+            $(".range-btn").click(function () {
+                
+                const period = $(this).data("period");
+                console.log("Period selected:", period);  // Log for debugging
+                if (currentTicker) {
+                    fetchAndRenderGraph(currentTicker, period);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
+{% endblock %}
 
 </html> 

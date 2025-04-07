@@ -1,9 +1,7 @@
-from flask import Flask, jsonify, render_template, request, redirect, url_for, session
+from flask import Flask, jsonify, render_template, request, redirect, url_for, session, send_file
 import requests
 import yfinance as yf 
 from datetime import datetime
-from flask import Flask, request, jsonify, render_template, send_file
-import yfinance as yf
 import matplotlib
 import io
 matplotlib.use('Agg')  # Use a non-GUI backend
@@ -15,6 +13,9 @@ import os
 from flask import flash
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'build')))
 from models import TrainModel
+import plotly.express as px
+import plotly.io as pio
+
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey' 
@@ -145,66 +146,7 @@ def favorites():
             print(f"Error fetching favorite stock info: {e}")
 
     return render_template('favorites.html', favorites=favorite_data)
-
-
-
-# app = Flask(__name__, template_folder='/Users/advaykadam/team-78-project/')
-
-# Home page
-# @app.route('/')
-# def index():
-#     return render_template('public/index.html') 
-
-
-"""
-- Route below fetches the stock history based on the ticker and period, which is set to 1 year by default
-"""
-
-# @app.route('/stock/<stock_ticker>/<period>', methods = ['GET'])
-# def search_stock_data(stock_ticker, period = '1y'):
-#     stock = yf.Ticker(stock_ticker)
-#     stock_history = stock.history(period = period)
-
-#     if not hist.empty:
-#         return jsonify(hist['Close'].to_dict())
-
-#     return {"Ticker error: Ticker not found"}
-
-
-# @app.route('/stock_info/<stock_ticker>/', methods = ['GET'])
-# def get_other_stock_data():
-#     stock = yf.Ticker(ticker)
-
-#     stock_info = stock.info 
-
-#     """
-#     This will return relevant stock information in json format
-#     """
-#     return None
-
-"""
-- App route will expect the model type, stock ticker, and period in time.
-- This route will return the results of a specific model
-"""
-# @app.route('/predict/<model>/<ticker>/<period>')
-# def predict_future_stock_price(model, ticker, period = "1y"):
-#     stock = yf.Ticker(ticker)
-
-#     stock_history = stock.history(period = period)  
-
-#     prices_data_y = stock_history['Close'].values
-#     values = len(prices_data_y)
-#     time_days_X = np.arange(values).reshape(-1, 1)
-
     
-
-"""
-The prices data and X (time) will be sent to our models python file and the model results will be returned
-"""
-
-
-
-
 
 def format_market_cap(market_cap):
     """Convert market cap to a human-readable format."""
@@ -266,56 +208,43 @@ def get_stock_graph(ticker):
         
         # Handle one day differently 
         if period == "1d":
-            hist = stock.history(period = period, interval = "5m")
+            historical_data = stock.history(period = period, interval = "5m")
         else: 
             # Otherwise just use interval of one day
-            hist = stock.history(period=period)
+            historical_data = stock.history(period=period)
         # If there's not enough data, return an error
-        if hist.empty:
+        if historical_data.empty:
             return jsonify({"error": f"No historical data found for {ticker} over period '{period}'."}), 404
 
         # Round Close prices
-        hist["Close"] = hist["Close"].round(2)
-        hist["Date"] = hist.index
+        historical_data["Close"] = historical_data["Close"].round(2)
+        historical_data["Date"] = historical_data.index
       
     
         # Optionally resample for long periods
         long_periods = {"2y", "5y", "10y", "max"}
         if period in long_periods:
-            hist = hist.resample("1W").mean()  # Weekly average
+            historical_data = historical_data.resample("1W").mean()  # Weekly average
+        # Interactive Plotly chart
+        fig = px.line(
+            historical_data,
+            x="Date",
+            y="Close",
+            title=f"{ticker.upper()} Stock Price History ({period})",
+            labels={"x": "Date", "Close": "Close Price"},
+        )
 
-        # Plot
-        fig, ax = plt.subplots(figsize=(12, 8))
-        ax.plot(hist["Date"], hist["Close"], linestyle='-', label=ticker.upper())
+        fig.update_layout(
+            xaxis_title="Date",
+            yaxis_title="Close Price",
+            hovermode="x unified",
+            template="plotly_white"
+        )
 
-        # Format date axis
-        
-        if period in {"1d", "5d"}:
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d %H:%M'))
-        elif period in {"1mo", "3mo", "6mo"}:
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
-        elif period in {"1y", "2y"}:
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%b %Y'))
-        else:
-            ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+        # Convert to HTML div
+        graph_html = pio.to_html(fig, full_html=False)
 
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Close Price")
-        ax.set_title(f"{ticker.upper()} Stock Price History ({period})")
-        ax.grid(True)
-        ax.legend()
-
-        # Rotate and format ticks
-        plt.xticks(rotation=45)
-        plt.tight_layout()
-
-        # Save to buffer
-        img = io.BytesIO()
-        plt.savefig(img, format='png')
-        img.seek(0)
-        plt.close()
-
-        return send_file(img, mimetype='image/png')
+        return jsonify({"graph_html": graph_html})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500

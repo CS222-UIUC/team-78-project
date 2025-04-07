@@ -135,3 +135,34 @@ h1 {
 .dropdown button {
     color: red;
 }
+
+.period-button {
+    background: #0052ff;;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-left: 6px;
+        font-size: 0.9rem;
+        color: white;
+}
+
+.period-button:hover {
+    background-color: #0052ff;;
+}
+
+#stockGraph {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f7f7f7;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    /* Ensure it takes up the full width */
+    max-width: 100%;
+    /* Avoid overflow */
+    display: block;
+    /* Makes sure it takes up space properly */
+    text-align: center;
+    /* Keeps things centered */
+}
