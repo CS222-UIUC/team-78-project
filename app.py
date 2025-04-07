@@ -5,6 +5,14 @@ from datetime import datetime
 import matplotlib
 import io
 matplotlib.use('Agg')  # Use a non-GUI backend
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
+import numpy as np 
+import sys
+import os
+from flask import flash
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'build')))
+from models import TrainModel
 import plotly.express as px
 import plotly.io as pio
 
@@ -39,9 +47,35 @@ def index():
 
     return render_template('index.html', articles=news_data)
 
-@app.route('/models')
+@app.route('/models', methods=['GET', 'POST'])
 def models():
-    return render_template('models.html')
+    ticker_query = ''
+    time_period = '1d'  
+    model_type = 'linear_regression'  
+    prediction_horizon = 1  
+    predictions = None
+    if request.method == 'POST':
+        ticker_query = request.form.get('q').upper() 
+        time_period = request.form.get('time_period')  
+        model_type = request.form.get('model_type') 
+        prediction_horizon = int(request.form.get('prediction_horizon'))  
+
+        if ticker_query and time_period and model_type and prediction_horizon:
+            stock_data = yf.Ticker(ticker_query).history(period = time_period)
+            stock_data['Close'].dropna(inplace=True)
+            print(stock_data)
+            train_mod = TrainModel(stock_data, model_type)
+            train_mod.generate_model()
+            predictions = train_mod.make_predictions(prediction_horizon)
+
+
+
+    return render_template('models.html', 
+                               ticker_query=ticker_query, 
+                               time_period=time_period, 
+                               model_type=model_type, 
+                               prediction_horizon=prediction_horizon, predictions = predictions)
+    
 
 @app.route('/stock_analysis')
 def stock_analysis():
