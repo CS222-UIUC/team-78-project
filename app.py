@@ -303,6 +303,31 @@ def get_stock_graph(ticker):
         return jsonify({"error": str(e)}), 500
     
 
+@app.route('/stock/<ticker>/history_data', methods=['GET'])
+def get_stock_history_data(ticker):
+    try:
+        period = request.args.get("period", "1mo")
+        valid_periods = {"1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "max"}
+        if period not in valid_periods:
+            return jsonify({"error": f"Invalid period '{period}'."}), 400
+
+        stock = yf.Ticker(ticker)
+        if period == "1d":
+            historical_data = stock.history(period=period, interval="5m")
+        else:
+            historical_data = stock.history(period=period)
+        if historical_data.empty:
+            return jsonify({"error": f"No historical data found for {ticker} over period '{period}'."}), 404
+
+        historical_data["Close"] = historical_data["Close"].round(2)
+        historical_data["Date"] = historical_data.index
+        dates = historical_data["Date"].dt.strftime("%Y-%m-%d").tolist()
+        closes = historical_data["Close"].tolist()
+        return jsonify({"history": [{"date": d, "close": c} for d, c in zip(dates, closes)]})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=True)
 
