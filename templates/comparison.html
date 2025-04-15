@@ -1,9 +1,153 @@
-<!DOCTYPE html>
-<html lang="en">
-
 {% extends "base.html" %}
 {% block title %}Stock Comparison{% endblock %}
-{% block page_heading %}<h1 class="text-center font-bold text-4xl">Compare Stocks</h1>{% endblock %}
-{% block page_description %}Compare stocks side-by-side to identify trends and opportunities.{% endblock %}
+{% block page_heading %}
+  <h1 class="text-center font-bold text-4xl my-6">Compare Stocks</h1>
+{% endblock %}
+{% block page_description %}
+<div class="max-w-4xl mx-auto bg-white shadow-md rounded-md p-6">
+    <h2 class="text-2xl font-bold mb-4">Enter Stock Tickers for Comparison</h2>
+    <form id="comparisonForm" class="space-y-4">
+        <div id="tickerInputs" class="space-y-2">
+            <div class="flex items-center space-x-2">
+                <input type="text" name="tickers[]" placeholder="Enter Stock Ticker" class="p-2 text-sm border border-gray-300 rounded-md w-full">
+            </div>
+        </div>
+        <button type="button" id="addTicker" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+            Add Ticker
+        </button>
+        <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            Compare
+        </button>
+    </form>
+</div>
 
-</html> 
+<div id="comparisonResults" class="max-w-4xl mx-auto mt-8 hidden">
+    <!-- Comparison Table -->
+    <h2 class="text-2xl font-bold mb-4">Comparison Table</h2>
+    <div class="overflow-x-auto">
+        <table class="min-w-full bg-white shadow rounded-md">
+            <thead>
+                <tr class="bg-blue-600 text-white">
+                    <th class="py-2 px-4 border">Ticker</th>
+                    <th class="py-2 px-4 border">Name</th>
+                    <th class="py-2 px-4 border">Current Price</th>
+                    <th class="py-2 px-4 border">Market Cap</th>
+                    <th class="py-2 px-4 border">Exchange</th>
+                    <th class="py-2 px-4 border">Sector</th>
+                    <th class="py-2 px-4 border">Industry</th>
+                </tr>
+            </thead>
+            <tbody id="comparisonTableBody">
+                <!-- Data rows will be injected here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Comparison Chart -->
+    <h2 class="text-2xl font-bold mb-4 mt-8">Historical Price Comparison Chart</h2>
+    <div id="comparisonChart" class="bg-white p-4 shadow rounded-md"></div>
+</div>
+
+<!-- Load Plotly for charting -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+// Add dynamic ticker input fields.
+document.getElementById('addTicker').addEventListener('click', function(){
+    var tickerDiv = document.createElement('div');
+    tickerDiv.className = 'flex items-center space-x-2';
+    tickerDiv.innerHTML = '<input type="text" name="tickers[]" placeholder="Enter Stock Ticker" class="p-2 text-sm border border-gray-300 rounded-md w-full" />' +
+                          '<button type="button" class="removeTicker px-2 py-1 bg-red-500 text-white rounded-md hover:bg-red-600">Remove</button>';
+    document.getElementById('tickerInputs').appendChild(tickerDiv);
+});
+
+// Remove a ticker input field.
+document.getElementById('tickerInputs').addEventListener('click', function(e){
+    if(e.target && e.target.matches("button.removeTicker")){
+        e.target.parentElement.remove();
+    }
+});
+
+// Fetch both the stock info and its historical data.
+function fetchTickerData(ticker) {
+    let trimmedTicker = ticker.trim();
+    return Promise.all([
+        fetch(`/stock/${trimmedTicker}`).then(response => response.json()),
+        fetch(`/stock/${trimmedTicker}/history_data?period=1mo`).then(response => response.json())
+    ]).then(([info, historyData]) => {
+        return {
+            ticker: trimmedTicker.toUpperCase(),
+            name: (info.name && info.name !== "N/A") ? info.name : trimmedTicker.toUpperCase(),
+            current_price: info.current_price || 'N/A',
+            market_cap: info.market_cap || 'N/A',
+            exchange: info.exchange || 'N/A',
+            sector: info.sector || 'N/A',
+            industry: info.industry || 'N/A',
+            history: historyData.history || []
+        };
+    }).catch(err => {
+        console.error('Error fetching data for', ticker, err);
+        // Return fallback data in case of error.
+        return {
+            ticker: trimmedTicker.toUpperCase(),
+            name: trimmedTicker.toUpperCase(),
+            current_price: 'N/A',
+            market_cap: 'N/A',
+            exchange: 'N/A',
+            sector: 'N/A',
+            industry: 'N/A',
+            history: []
+        };
+    });
+}
+
+// Handle form submission.
+document.getElementById('comparisonForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var formData = new FormData(e.target);
+    var tickers = formData.getAll('tickers[]').filter(t => t.trim() !== '');
+    if(tickers.length < 2){
+        alert('Please enter at least two stock tickers for comparison.');
+        return;
+    }
+    
+    // Fetch info and history for all tickers.
+    Promise.all(tickers.map(ticker => fetchTickerData(ticker)))
+    .then(function(results) {
+         // Build the comparison table.
+         var tableBody = document.getElementById('comparisonTableBody');
+         tableBody.innerHTML = '';
+         results.forEach(function(item) {
+             var row = document.createElement('tr');
+             row.innerHTML = '<td class="py-2 px-4 border">' + item.ticker + '</td>' +
+                             '<td class="py-2 px-4 border">' + item.name + '</td>' +
+                             '<td class="py-2 px-4 border">' + item.current_price + '</td>' +
+                             '<td class="py-2 px-4 border">' + item.market_cap + '</td>' +
+                             '<td class="py-2 px-4 border">' + item.exchange + '</td>' +
+                             '<td class="py-2 px-4 border">' + item.sector + '</td>' +
+                             '<td class="py-2 px-4 border">' + item.industry + '</td>';
+             tableBody.appendChild(row);
+         });
+         
+         // Build the multi-line chart using Plotly.
+         var traces = results.map(function(item) {
+             if (item.history.length === 0) return null;
+             return {
+                 x: item.history.map(point => point.date),
+                 y: item.history.map(point => parseFloat(point.close)),
+                 mode: 'lines',
+                 name: item.ticker
+             };
+         }).filter(trace => trace !== null);
+
+         var layout = {
+             title: 'Historical Close Prices (1mo)',
+             xaxis: { title: 'Date' },
+             yaxis: { title: 'Close Price (USD)' }
+         };
+         Plotly.newPlot('comparisonChart', traces, layout);
+         
+         document.getElementById('comparisonResults').classList.remove('hidden');
+    });
+});
+</script>
+{% endblock %}
