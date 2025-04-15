@@ -30,10 +30,10 @@
 
             <!-- Time Period -->
             <select name="time_period" class="p-3 text-sm text-black focus:outline-none w-full border border-gray-300 rounded-md mb-4">
-                <option value="1d" {% if time_period == '1y' %}selected{% endif %}>1 Year</option>
-                <option value="1w" {% if time_period == '2y' %}selected{% endif %}>2 Years</option>
-                <option value="1m" {% if time_period == '5y' %}selected{% endif %}>5 Years</option>
-                <option value="1y" {% if time_period == '10y' %}selected{% endif %}>10 Years</option>
+                <option value="1y" {% if time_period == '1y' %}selected{% endif %}>1 Year</option>
+                <option value="2y" {% if time_period == '2y' %}selected{% endif %}>2 Years</option>
+                <option value="5y" {% if time_period == '5y' %}selected{% endif %}>5 Years</option>
+                <option value="10y" {% if time_period == '10y' %}selected{% endif %}>10 Years</option>
             </select>
 
             <!-- Model Type -->
@@ -60,7 +60,7 @@
                 <h4 class="text-xl font-semibold mb-4">Predicted Stock Prices:</h4>
                 <ul class="space-y-2">
                     {% for prediction in predictions['future_predictions'] %}
-                        <li class="text-lg">Prediction: {{ prediction }}</li>
+                        <li class="text-lg">Prediction for Day {{ loop.index }}: ${{ prediction | round(2) }}</li>
                     {% endfor %}
                 </ul>
             </div>
