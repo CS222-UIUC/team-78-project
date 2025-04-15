@@ -21,26 +21,30 @@
               <a href="/" class="text-xl font-semibold">📈 StockTool</a>
               <a href="/" class="hover:text-blue-200">Home</a>
               <a href="/favorites" class="hover:text-blue-200">Favorites</a>
-              <a href="/models" class="hover:text-blue-200">Models</a>
-              <a href="/stock_analysis" class="hover:text-blue-200">Analysis</a>
-              <a href="/stock_comparison" class="hover:text-blue-200">Comparison</a>
-              <a href="/account_settings" class="hover:text-blue-200">Settings</a>
+              <a href="/predict" class="hover:text-blue-200">Predict</a>
+              <a href="/analysis" class="hover:text-blue-200">Analysis</a>
+              <a href="/comparison" class="hover:text-blue-200">Comparison</a>
             </div>
           
             <div class="flex items-center space-x-4">
-              <!-- <form action="/search" method="GET" class="flex items-center bg-white rounded-md px-2">
-                <input type="text" name="q" placeholder="Search..." class="p-1 text-sm text-black focus:outline-none" />
-                <button type="submit">🔍</button>
-              </form> -->
           
               <div class="relative">
-                <img src="{{ url_for('static', filename='images/fillerimg.png') }}" onclick="toggleDropdown()" class="w-10 h-10 rounded-full cursor-pointer border-2 border-white object-cover" />
-                <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-40 bg-white rounded-md shadow-lg z-50 text-black">
-                  <a href="/account_settings" class="block px-4 py-2 hover:bg-gray-100">Account Settings</a>
-                  <button onclick="login()" class="block px-4 py-2 hover:bg-gray-100 text-blue-600 w-full text-left">Sign-Up/Login</button>
-                  <button onclick="logout()" class="block px-4 py-2 hover:bg-gray-100 text-red-600 w-full text-left">Logout</button>
+                <img src="{{ url_for('static', filename='images/fillerimg.png') }}" onclick="toggleDropdown()" 
+                     class="w-10 h-10 rounded-full cursor-pointer border-2 border-white object-cover" />
+                <div id="profileDropdown" class="hidden absolute right-0 mt-3 w-40 bg-white rounded-md shadow-lg z-50 text-black">
+                    {% if session.get('user_id') %}
+                        <!-- Options for logged-in users -->
+                        <a href="/account_settings" class="block px-4 py-2 hover:bg-gray-100">Account Settings</a>
+                        <button onclick="logout()" class="block px-4 py-2 hover:bg-gray-100 text-red-600 w-full text-left">Logout</button>
+                    {% else %}
+                        <!-- Options for guests -->
+                        <a href="/login" class="block px-4 py-2 hover:bg-gray-100 text-blue-600 w-full text-left">Sign-Up/Login</a>
+
+                    {% endif %}
                 </div>
               </div>
+              
+              
             </div>
           </nav>
           

@@ -28,10 +28,10 @@ class TrainModel:
         """
         Splits the data into training and testing
         """
-        x_train, ___, y_train, ___ = train_test_split(
-            self.date, self.close, test_size=self.test_ratio
-        )
-        return x_train, y_train
+        # x_train, ___, y_train, ___ = train_test_split(
+        #     self.date, self.close, test_size=self.test_ratio
+        # )
+        return self.date, self.close
 
     def generate_model(self):
         """
