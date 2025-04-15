@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login/Sign Up</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex items-center justify-center">
+        <div class="max-w-md w-full bg-white shadow-md rounded-md p-8">
+            <!-- Tabs for Login/Sign Up -->
+            <div class="flex justify-center mb-6 space-x-4">
+                <button id="loginTab" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 active-tab">
+                    Log In
+                </button>
+                <button id="signUpTab" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-blue-700">
+                    Sign Up
+                </button>
+            </div>
+
+            <!-- Log In Form -->
+            <div id="loginContent">
+                <h1 class="text-xl font-bold mb-4 text-center">Log In</h1>
+                <form action="/login" method="POST">
+                    <div class="mb-4">
+                        <label for="username" class="block text-sm font-medium">Username</label>
+                        <input type="text" id="username" name="username" required
+                               class="p-2 text-sm text-black focus:outline-none border border-gray-300 rounded-md w-full">
+                    </div>
+                    <div class="mb-6">
+                        <label for="password" class="block text-sm font-medium">Password</label>
+                        <input type="password" id="password" name="password" required
+                               class="p-2 text-sm text-black focus:outline-none border border-gray-300 rounded-md w-full">
+                    </div>
+                    <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        Log In
+                    </button>
+                </form>
+            </div>
+
+            <!-- Sign Up Form -->
+            <div id="signUpContent" class="hidden">
+                <h1 class="text-xl font-bold mb-4 text-center">Sign Up</h1>
+                <form action="/signup" method="POST">
+                    <div class="mb-4">
+                        <label for="email" class="block text-sm font-medium">Email</label>
+                        <input type="email" id="email" name="email" required
+                               class="p-2 text-sm text-black focus:outline-none border border-gray-300 rounded-md w-full">
+                    </div>
+                    <div class="mb-4">
+                        <label for="username" class="block text-sm font-medium">Username</label>
+                        <input type="text" id="signupUsername" name="username" required
+                               class="p-2 text-sm text-black focus:outline-none border border-gray-300 rounded-md w-full">
+                    </div>
+                    <div class="mb-4">
+                        <label for="password" class="block text-sm font-medium">Password</label>
+                        <input type="password" id="signupPassword" name="password" required
+                               class="p-2 text-sm text-black focus:outline-none border border-gray-300 rounded-md w-full">
+                    </div>
+                    <div class="mb-6">
+                        <label for="confirmPassword" class="block text-sm font-medium">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirm_password" required
+                               class="p-2 text-sm text-black focus:outline-none border border-gray-300 rounded-md w-full">
+                    </div>
+                    <button type="submit" class="w-full py-2 px-4 bg-green-600 text-white rounded-md hover:bg-green-700">
+                        Sign Up
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript for toggling between Login and Sign Up forms
+        const loginTab = document.getElementById('loginTab');
+        const signUpTab = document.getElementById('signUpTab');
+        const loginContent = document.getElementById('loginContent');
+        const signUpContent = document.getElementById('signUpContent');
+
+        loginTab.addEventListener('click', function () {
+            loginContent.classList.remove('hidden');
+            signUpContent.classList.add('hidden');
+            loginTab.classList.add('bg-blue-700');
+            signUpTab.classList.remove('bg-blue-700');
+            signUpTab.classList.add('bg-gray-600');
+        });
+
+        signUpTab.addEventListener('click', function () {
+            signUpContent.classList.remove('hidden');
+            loginContent.classList.add('hidden');
+            signUpTab.classList.add('bg-blue-700');
+            loginTab.classList.remove('bg-blue-700');
+            loginTab.classList.add('bg-gray-600');
+        });
+    </script>
+</body>
+</html>

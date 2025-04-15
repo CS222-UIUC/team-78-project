@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request, redirect, url_for, session, send_file
+from flask import Flask, jsonify, render_template, request, redirect, url_for, session, send_file, redirect, flash
 import requests
 import yfinance as yf 
 from datetime import datetime
@@ -10,19 +10,71 @@ import matplotlib.dates as mdates
 import numpy as np 
 import sys
 import os
-from flask import flash
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'build')))
 from models import TrainModel
 import plotly.express as px
 import plotly.io as pio
+import sqlite3
+from werkzeug.security import generate_password_hash, check_password_hash
 
+import bcrypt
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey' 
 
-#  polygon.io has stock api for freee -> xayif58234@buides.com is email and password 
-#  key: W1wT4puBL66ipVKe_BNHnV7JYGWMwEpX	 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
 
+        # CONNECT STUFF IS WORK IN PROGRESS --> still working out some stuff, this is groundwork for future features
+        conn = sqlite3.connect("database.db")
+        conn.row_factory = sqlite3.Row  
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, password FROM users WHERE username = ?", (username,))
+        
+
+        user = conn.execute("SELECT id, username, password FROM users WHERE username = ?", (username,)).fetchone()
+        conn.close()
+       
+        if user is None: 
+            flash("Invalid username or password.", "error")
+            return redirect("/login")
+
+        if user and bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
+            session["user_id"] = user[0]
+            session["username"] = username
+            return redirect("/")
+        else:
+            return "Invalid credentials. Please try again.", 401
+
+    return render_template("login.html")
+
+def get_db_connection():
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row 
+    return conn
+
+@app.route("/signup", methods=["POST"])
+def signup():
+    username = request.form["username"]
+    password = request.form["password"]
+    conn = get_db_connection()
+    try:
+        hashed_password = generate_password_hash(password)
+        conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
+        conn.commit()
+        flash(f"Account created. Welcome, {username}!", "success")
+    except sqlite3.IntegrityError:
+        flash("Username already exists. Please choose a different username.", "error")
+    finally:
+        conn.close()
+    return redirect(url_for("account_settings"))
+
+
+#  polygon.io has stock api for freee -> xayif58234@buides.com is email and password 
+#  key: W1wT4puBL66ipVKe_BNHnV7JYGWMwEpX	
 NEWS_API_KEY = "W1wT4puBL66ipVKe_BNHnV7JYGWMwEpX"
 
 @app.route('/')
@@ -47,7 +99,7 @@ def index():
 
     return render_template('index.html', articles=news_data)
 
-@app.route('/models', methods=['GET', 'POST'])
+@app.route('/predict', methods=['GET', 'POST'])
 def models():
     ticker_query = ''
     time_period = '1d'  
@@ -70,20 +122,20 @@ def models():
 
 
 
-    return render_template('models.html', 
+    return render_template('predict.html', 
                                ticker_query=ticker_query, 
                                time_period=time_period, 
                                model_type=model_type, 
                                prediction_horizon=prediction_horizon, predictions = predictions)
     
 
-@app.route('/stock_analysis')
+@app.route('/analysis')
 def stock_analysis():
-    return render_template('stock_analysis.html')
+    return render_template('analysis.html')
 
-@app.route('/stock_comparison')
+@app.route('/comparison')
 def stock_comparison():
-    return render_template('stock_comparison.html')
+    return render_template('comparison.html')
 
 @app.route('/account_settings')
 def account_settings():
@@ -121,6 +173,7 @@ def favorite():
     if 'favorites' not in session:
         session['favorites'] = []
 
+ 
     if symbol and symbol not in session['favorites']:
         session['favorites'].append(symbol)
         session.modified = True

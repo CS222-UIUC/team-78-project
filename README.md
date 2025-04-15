@@ -17,6 +17,7 @@
 ##### cd to team-78-project folder
 <!-- ##### `export NODE_OPTIONS=--openssl-legacy-provider`  -->
 <!-- ##### `npm start` -->
+<!-- pip install pysqlite3 -->
 ###### cd into venv folder
 ###### python app.py
 
@@ -26,5 +27,7 @@
 
 ###### running npm start on its own may not load page properly
 ###### its good practice after a few changes to quit (command-c) and re-run using npm start 
+to get out of virtual env do deactivate and then when you run python app.py it will go back in venv
+
 
 <!-- Command + Shift + V in VSCode for Preview -->
