@@ -65,6 +65,14 @@
                 </ul>
             </div>
         </div>
+        <div class="mt-6 bg-gray-50 rounded-md p-6 max-w-xl mx-auto">
+            <h4 class="text-xl font-semibold mb-4">Model Metrics</h4>
+            <ul class="space-y-2">
+                <li>R²:  {{ metrics.r2  | round(4) }}</li>
+                <li>MSE: {{ metrics.mse | round(4) }}</li>
+                <li>MAE: {{ metrics.mae | round(4) }}</li>
+            </ul>
+        </div>
     {% else %}
         <div class="mt-8">
             <h4 class="text-xl text-center text-gray-600">No predictions available. Please submit the form to generate predictions.</h4>

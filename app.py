@@ -106,6 +106,7 @@ def models():
     model_type = 'linear_regression'  
     prediction_horizon = 1  
     predictions = None
+    metrics = None
     if request.method == 'POST':
         ticker_query = request.form.get('q').upper() 
         time_period = request.form.get('time_period')  
@@ -121,14 +122,16 @@ def models():
             train_mod = TrainModel(stock_data, model_type)
             train_mod.generate_model()
             predictions = train_mod.make_predictions(prediction_horizon)
-
+            metrics = train_mod.evaluate()
 
 
     return render_template('predict.html', 
                                ticker_query=ticker_query, 
                                time_period=time_period, 
                                model_type=model_type, 
-                               prediction_horizon=prediction_horizon, predictions = predictions)
+                               prediction_horizon=prediction_horizon, 
+                               predictions = predictions,
+                               metrics = metrics)
     
 
 @app.route('/analysis')
@@ -306,5 +309,5 @@ def get_stock_graph(ticker):
     
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port = 8000)
 

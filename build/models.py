@@ -9,6 +9,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from statsmodels.tsa.api import ExponentialSmoothing, Holt
 from statsmodels.tsa.arima.model import ARIMA
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
 
 class TrainModel:
@@ -28,16 +29,16 @@ class TrainModel:
         """
         Splits the data into training and testing
         """
-        # x_train, ___, y_train, ___ = train_test_split(
-        #     self.date, self.close, test_size=self.test_ratio
-        # )
-        return self.date, self.close
+        x_train, x_test, y_train, y_test = train_test_split(
+            self.date, self.close, test_size=self.test_ratio, random_state=42
+        )
+        return x_train, x_test, y_train, y_test
 
     def generate_model(self):
         """
         Fits model on training data based on model type
         """
-        x_train, y_train = self.generate_split_data()
+        x_train, x_test, y_train, y_test = self.generate_split_data()
 
         if self.model_name == "linear_regression":
             self.model = LinearRegression()
@@ -96,6 +97,27 @@ class TrainModel:
             return {"future_predictions": predictions}
 
         return None
+
+    def evaluate(self):
+        """
+        Compute R2, MSE, MAE on the test set.
+        """
+        if self.model is None:
+            self.generate_model()
+
+        x_train, x_test, y_train, y_test = self.generate_split_data()
+        y_true = y_test.flatten()
+
+        if self.model_name == "linear_regression":
+            y_pred = self.model.predict(x_test).flatten()
+        else:
+            y_pred = self.model.forecast(steps=len(y_test))
+
+        return {
+            "r2":  r2_score(y_true, y_pred),
+            "mse": mean_squared_error(y_true, y_pred),
+            "mae": mean_absolute_error(y_true, y_pred),
+        }
 
 
 if __name__ == "__main__":
