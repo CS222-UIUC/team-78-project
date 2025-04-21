@@ -1,5 +1,5 @@
 import sqlite3
-import bcrypt  
+from werkzeug.security import generate_password_hash  
 
 connection = sqlite3.connect('database.db')
 cursor = connection.cursor()
@@ -14,9 +14,8 @@ cursor.execute('''
 ''')
 
 def add_user(username, plaintext_password):
-    # security - bcrypt helps hash / encyupt the password
-    hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())
-
+    # security - using werkzeug now
+    hashed_password = generate_password_hash(plaintext_password)
     try:
         cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', 
                        (username, hashed_password.decode('utf-8')))

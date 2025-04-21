@@ -17,8 +17,6 @@ import plotly.io as pio
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 
-import bcrypt
-
 app = Flask(__name__)
 app.secret_key = 'supersecretkey' 
 
@@ -42,8 +40,8 @@ def login():
             flash("Invalid username or password.", "error")
             return redirect("/login")
 
-        if user and bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
-            session["user_id"] = user[0]
+        if user and check_password_hash(user["password"], password):
+            session["user_id"] = user["id"]
             session["username"] = username
             return redirect("/")
         else:
