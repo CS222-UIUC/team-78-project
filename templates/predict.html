@@ -30,10 +30,10 @@
 
             <!-- Time Period -->
             <select name="time_period" class="p-3 text-sm text-black focus:outline-none w-full border border-gray-300 rounded-md mb-4">
-                <option value="1d" {% if time_period == '1y' %}selected{% endif %}>1 Year</option>
-                <option value="1w" {% if time_period == '2y' %}selected{% endif %}>2 Years</option>
-                <option value="1m" {% if time_period == '5y' %}selected{% endif %}>5 Years</option>
-                <option value="1y" {% if time_period == '10y' %}selected{% endif %}>10 Years</option>
+                <option value="1y" {% if time_period == '1y' %}selected{% endif %}>1 Year</option>
+                <option value="2y" {% if time_period == '2y' %}selected{% endif %}>2 Years</option>
+                <option value="5y" {% if time_period == '5y' %}selected{% endif %}>5 Years</option>
+                <option value="10y" {% if time_period == '10y' %}selected{% endif %}>10 Years</option>
             </select>
 
             <!-- Model Type -->
@@ -45,7 +45,7 @@
             </select>
 
             <!-- Prediction Horizon -->
-            <input type="number" name="prediction_horizon" placeholder="Prediction Horizon (Months)" min="1" class="p-3 text-sm text-black focus:outline-none w-full border border-gray-300 rounded-md mb-6" value="{{ prediction_horizon or '' }}" />
+            <input type="number" name="prediction_horizon" placeholder="Prediction Horizon (Days)" min="1" class="p-3 text-sm text-black focus:outline-none w-full border border-gray-300 rounded-md mb-6" value="{{ prediction_horizon or '' }}" />
 
             <!-- Submit Button -->
             <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 transition duration-300">Submit</button>
@@ -60,10 +60,18 @@
                 <h4 class="text-xl font-semibold mb-4">Predicted Stock Prices:</h4>
                 <ul class="space-y-2">
                     {% for prediction in predictions['future_predictions'] %}
-                        <li class="text-lg">Prediction: {{ prediction }}</li>
+                        <li class="text-lg">Prediction for Day {{ loop.index }}: ${{ prediction | round(2) }}</li>
                     {% endfor %}
                 </ul>
             </div>
+        </div>
+        <div class="mt-6 bg-gray-50 rounded-md p-6 max-w-xl mx-auto">
+            <h4 class="text-xl font-semibold mb-4">Model Metrics</h4>
+            <ul class="space-y-2">
+                <li>R²:  {{ metrics.r2  | round(4) }}</li>
+                <li>MSE: {{ metrics.mse | round(4) }}</li>
+                <li>MAE: {{ metrics.mae | round(4) }}</li>
+            </ul>
         </div>
     {% else %}
         <div class="mt-8">
