@@ -17,10 +17,13 @@ import plotly.io as pio
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 
-import bcrypt
-
 app = Flask(__name__)
 app.secret_key = 'supersecretkey' 
+
+@app.route("/logout")
+def logout():
+    session.clear()  
+    return redirect("/")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -28,7 +31,6 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        # CONNECT STUFF IS WORK IN PROGRESS --> still working out some stuff, this is groundwork for future features
         conn = sqlite3.connect("database.db")
         conn.row_factory = sqlite3.Row  
         cursor = conn.cursor()
@@ -42,8 +44,9 @@ def login():
             flash("Invalid username or password.", "error")
             return redirect("/login")
 
-        if user and bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
-            session["user_id"] = user[0]
+        stored_password = user["password"].decode("utf-8") if isinstance(user["password"], bytes) else user["password"]
+        if check_password_hash(stored_password, password):
+            session["user_id"] = user["id"]
             session["username"] = username
             return redirect("/")
         else:

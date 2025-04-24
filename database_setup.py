@@ -1,5 +1,5 @@
 import sqlite3
-import bcrypt  
+from werkzeug.security import generate_password_hash  
 
 connection = sqlite3.connect('database.db')
 cursor = connection.cursor()
@@ -14,18 +14,16 @@ cursor.execute('''
 ''')
 
 def add_user(username, plaintext_password):
-    # security - bcrypt helps hash / encyupt the password
-    hashed_password = bcrypt.hashpw(plaintext_password.encode('utf-8'), bcrypt.gensalt())
-
+    hashed_password = generate_password_hash(plaintext_password)
     try:
         cursor.execute('INSERT INTO users (username, password) VALUES (?, ?)', 
-                       (username, hashed_password.decode('utf-8')))
+                       (username, hashed_password.encode('utf-8')))
         connection.commit()
         print(f"User '{username}' added successfully!")
     except sqlite3.IntegrityError:
         print(f"User '{username}' already exists!")
 
-# add_user('testuser', 'password123') # for debugging triad making sample user
+add_user('testuser', 'password123') # for debugging tried making sample user
 
 connection.close()
 print("All Done! db and user setup is success!")

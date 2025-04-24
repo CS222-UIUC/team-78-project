@@ -92,8 +92,10 @@
     }
   
     function logout() {
-      alert("Logging out...");
+        alert("Logging out...");
+        window.location.href = "/logout"; // redirects to logout route
     }
+
   
     document.addEventListener("click", function (event) {
       const dropdown = document.getElementById("profileDropdown");
