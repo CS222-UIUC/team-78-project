@@ -67,15 +67,18 @@ class TrainModel:
         """
         if self.model_name == "linear_regression" or isinstance(self.model, LinearRegression):
             return {
-                "coefficients": self.model.coef_.tolist(),
-                "intercept": self.model.intercept_.tolist(),
+                "coefficients": [round(c, 2) for c in self.model.coef_.flatten()],
+                "intercept": round(self.model.intercept_[0], 2),
             }
 
         if self.model_name in ("holt", "exponential_smoothing"):
-            return self.model.params
+            return {k: round(v, 2) for k, v in self.model.params.items()}
 
         if self.model_name == "ARIMA" or isinstance(self.model, ARIMA):
-            return {"params": self.model.params.tolist(), "aic": self.model.aic}
+            return {
+                "params": [round(p, 2) for p in self.model.params],
+                "aic": round(self.model.aic, 2),
+            }
 
         return None
 
@@ -86,15 +89,15 @@ class TrainModel:
         if self.model_name == "linear_regression" or isinstance(self.model, LinearRegression):
             future_dates = np.arange(len(self.date), len(self.date) + num_preds).reshape(-1, 1)
             predictions = self.model.predict(future_dates).flatten().tolist()
-            return {"future_predictions": predictions}
+            return {"future_predictions": [round(p, 2) for p in predictions]}
 
         if self.model_name in ("holt", "exponential_smoothing"):
             predictions = self.model.forecast(num_preds).tolist()
-            return {"future_predictions": predictions}
+            return {"future_predictions": [round(p, 2) for p in predictions]}
 
         if self.model_name == "ARIMA" or isinstance(self.model, ARIMA):
             predictions = self.model.forecast(steps=num_preds).tolist()
-            return {"future_predictions": predictions}
+            return {"future_predictions": [round(p, 2) for p in predictions]}
 
         return None
 
