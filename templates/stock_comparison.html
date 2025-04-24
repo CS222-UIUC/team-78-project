@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% extends "base.html" %}
+{% block title %}Stock Comparison{% endblock %}
+{% block page_heading %}<h1 class="text-center font-bold text-4xl">Compare Stocks</h1>{% endblock %}
+{% block page_description %}Compare stocks side-by-side to identify trends and opportunities.{% endblock %}
+
+{% block content %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Comparison</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+
+<body class="bg-gray-100 py-8">
+
+<div class="max-w-6xl mx-auto bg-white shadow-md rounded-md p-6">
+
+    <!-- Search Bars -->
+    <form id="compareForm" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <input type="text" id="ticker1" name="ticker1" placeholder="Enter First Ticker (e.g., AAPL)"
+               class="p-2 text-sm text-black border border-gray-300 rounded-md w-full">
+        <input type="text" id="ticker2" name="ticker2" placeholder="Enter Second Ticker (e.g., MSFT)"
+               class="p-2 text-sm text-black border border-gray-300 rounded-md w-full">
+        <div class="md:col-span-2 text-center">
+            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                Compare
+            </button>
+        </div>
+    </form>
+
+    <!-- Stock Info Panels -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div id="stockInfo1" class="hidden bg-gray-100 p-4 rounded-md shadow">
+            <h2 class="text-xl font-semibold mb-4">Stock 1 Information</h2>
+            <p><strong>Name:</strong> <span id="stockName1"></span></p>
+            <p><strong>Ticker:</strong> <span id="stockTicker1"></span></p>
+            <p><strong>Current Price:</strong> <span id="stockPrice1"></span></p>
+            <p><strong>Market Cap:</strong> <span id="stockMarketCap1"></span></p>
+            <p><strong>Sector:</strong> <span id="stockSector1"></span></p>
+            <p><strong>Industry:</strong> <span id="stockIndustry1"></span></p>
+        </div>
+        <div id="stockInfo2" class="hidden bg-gray-100 p-4 rounded-md shadow">
+            <h2 class="text-xl font-semibold mb-4">Stock 2 Information</h2>
+            <p><strong>Name:</strong> <span id="stockName2"></span></p>
+            <p><strong>Ticker:</strong> <span id="stockTicker2"></span></p>
+            <p><strong>Current Price:</strong> <span id="stockPrice2"></span></p>
+            <p><strong>Market Cap:</strong> <span id="stockMarketCap2"></span></p>
+            <p><strong>Sector:</strong> <span id="stockSector2"></span></p>
+            <p><strong>Industry:</strong> <span id="stockIndustry2"></span></p>
+        </div>
+    </div>
+
+    <!-- Time Range Buttons -->
+    <div id="rangeButtons" class="hidden mt-4 mb-6 text-center">
+        <p class="text-lg font-semibold mb-2">Select Time Period</p>
+        <div class="flex flex-wrap justify-center gap-2">
+            <!-- Iterate through a list of time periods with labels that match yfinance expectations -->
+            {% for label, period in [("1D", "1d"), ("5D", "5d"), ("1M", "1mo"), ("3M", "3mo"), ("6M", "6mo"), ("1Y", "1y"), ("5Y", "5y"), ("10Y", "10y"), ("Max", "max")] %}
+                <button class="range-btn period-button px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" data-period="{{ period }}">
+                    {{ label }}
+                </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Graph -->
+    <div id="stockGraph" class="hidden bg-gray-100 p-4 rounded-md shadow mb-6"></div>
+
+    <!-- Error -->
+    <div id="errorMessage" class="hidden text-red-600 bg-gray-100 p-4 rounded-md shadow"></div>
+</div>
+
+<script>
+    let currentTickers = { ticker1: null, ticker2: null };
+
+    function fetchStockInfo(ticker, idx) {
+        return $.ajax({
+            url: `/stock/${ticker}`,
+            method: "GET",
+            success: function (data) {
+                $(`#stockName${idx}`).text(data.name);
+                $(`#stockTicker${idx}`).text(data.ticker);
+                $(`#stockPrice${idx}`).text(data.current_price);
+                $(`#stockMarketCap${idx}`).text(data.market_cap);
+                $(`#stockSector${idx}`).text(data.sector);
+                $(`#stockIndustry${idx}`).text(data.industry);
+
+                $(`#stockInfo${idx}`).removeClass("hidden");
+            },
+            error: function () {
+                $(`#stockInfo${idx}`).addClass("hidden");
+                $("#errorMessage").text(`Failed to fetch data for ${ticker}`).removeClass("hidden");
+            }
+        });
+    }
+
+    function fetchAndRenderComparisonGraph(ticker1, ticker2, period = "1mo") {
+        const scrollPosition = $(window).scrollTop();
+
+        $.ajax({
+            url: `/compare/${ticker1}/${ticker2}/graph?period=${period}`,
+            method: "GET",
+            success: function (response) {
+                $("#stockGraph").html(response.graph_html).removeClass("hidden");
+                $("#rangeButtons").removeClass("hidden");
+                $("#errorMessage").addClass("hidden");
+                $(window).scrollTop(scrollPosition);
+            },
+            error: function () {
+                $("#errorMessage").text("Error loading comparison graph.").removeClass("hidden");
+                $("#stockGraph").addClass("hidden");
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $("#compareForm").submit(function (e) {
+            e.preventDefault();
+            const ticker1 = $("#ticker1").val().trim().toUpperCase();
+            const ticker2 = $("#ticker2").val().trim().toUpperCase();
+
+            currentTickers = { ticker1, ticker2 };
+
+            // Load both stock infos, then fetch graph
+            Promise.all([
+                fetchStockInfo(ticker1, 1),
+                fetchStockInfo(ticker2, 2)
+            ]).then(() => {
+                fetchAndRenderComparisonGraph(ticker1, ticker2);
+            });
+        });
+
+        $(".range-btn").click(function () {
+            const period = $(this).data("period");
+            if (currentTickers.ticker1 && currentTickers.ticker2) {
+                fetchAndRenderComparisonGraph(currentTickers.ticker1, currentTickers.ticker2, period);
+            }
+        });
+    });
+</script>
+
+</body>
+{% endblock %}
+
+</html>

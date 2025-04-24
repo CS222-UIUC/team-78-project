@@ -2,20 +2,19 @@ from flask import Flask, jsonify, render_template, request, redirect, url_for, s
 import requests
 import yfinance as yf 
 from datetime import datetime
-import matplotlib
-import io
-matplotlib.use('Agg')  # Use a non-GUI backend
-import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-import numpy as np 
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'build')))
 from models import TrainModel
 import plotly.express as px
 import plotly.io as pio
+<<<<<<< HEAD
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
+=======
+import pandas as pd
+
+>>>>>>> f9525a31 (added rounding to prediction values and parameter values, and implemented basic stock comparison page)
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey' 
@@ -309,7 +308,63 @@ def get_stock_graph(ticker):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
+
+@app.route('/compare/<ticker1>/<ticker2>/graph', methods=['GET'])
+def get_compare_stock_graph(ticker1, ticker2):
+    try:
+        period = request.args.get("period", "1mo")
+        valid_periods = {"1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "max"}
+        if period not in valid_periods:
+            return jsonify({"error": f"Invalid period '{period}'. Valid options: {', '.join(valid_periods)}"}), 400
+
+        # Download data
+        tickers = [ticker1, ticker2]
+        interval = "1d"
+        if period in ["1d"]:
+            interval = "5m"
+        elif period in ["5d","1mo", "3mo"]:
+            interval = "1d"
+        elif period in ["6mo", "1y"]:
+            interval = "1d"
+        elif period in ["2y", "5y", "10y", "max"]:
+            interval = "1wk"
+        data = yf.download(tickers, period=period, interval=interval, group_by='ticker', auto_adjust=True)
+
+        # Check if data exists
+        if data.empty:
+            return jsonify({"error": f"No historical data found for {ticker1} and {ticker2} over period '{period}'."}), 404
+
+        # Extract and prepare data
+        df1 = data[ticker1]["Close"].rename(ticker1)
+        df2 = data[ticker2]["Close"].rename(ticker2)
+
+        combined = pd.concat([df1, df2], axis=1).dropna()
+        combined = combined.round(2)
+        combined["Date"] = combined.index
+
+        # Plot
+        fig = px.line(
+            combined,
+            x="Date",
+            y=[ticker1, ticker2],
+            title=f"{ticker1.upper()} vs {ticker2.upper()} Stock Prices ({period})",
+            labels={"value": "Close Price", "variable": "Ticker"},
+        )
+
+        fig.update_layout(
+            xaxis_title="Date",
+            yaxis_title="Close Price",
+            hovermode="x unified",
+            template="plotly_white"
+        )
+
+        graph_html = pio.to_html(fig, full_html=False)
+
+        return jsonify({"graph_html": graph_html})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/stock/<ticker>/history_data', methods=['GET'])
 def get_stock_history_data(ticker):
