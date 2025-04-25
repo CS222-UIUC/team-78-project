@@ -15,12 +15,28 @@ from models import TrainModel
 import plotly.express as px
 import plotly.io as pio
 import sqlite3
-from werkzeug.security import generate_password_hash, check_password_hash
+from database_setup import add_user
 
 import bcrypt
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey' 
+
+@app.route("/debug_users")
+def debug_users():
+    conn = sqlite3.connect("database.db")
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    rows = cursor.execute("SELECT * FROM users").fetchall()
+
+    # print("Users table content:")
+    # for row in rows:
+    #     print(dict(row)) 
+
+    conn.close()
+    return "Check console for users table content."
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -28,26 +44,38 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
 
-        # CONNECT STUFF IS WORK IN PROGRESS --> still working out some stuff, this is groundwork for future features
-        conn = sqlite3.connect("database.db")
-        conn.row_factory = sqlite3.Row  
-        cursor = conn.cursor()
-        cursor.execute("SELECT id, password FROM users WHERE username = ?", (username,))
-        
+        # print("Received username:", username)
+        # print("Received password:", password)
 
+        conn = sqlite3.connect("database.db")
+        conn.row_factory = sqlite3.Row
         user = conn.execute("SELECT id, username, password FROM users WHERE username = ?", (username,)).fetchone()
         conn.close()
-       
-        if user is None: 
-            flash("Invalid username or password.", "error")
-            return redirect("/login")
 
-        if user and bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
-            session["user_id"] = user[0]
-            session["username"] = username
-            return redirect("/")
-        else:
-            return "Invalid credentials. Please try again.", 401
+        # print("Retrieved user from database:", user)
+
+        if user is None:
+            print("User not found.")  
+            flash("Invalid username or password.", "error")
+            return redirect("/login") 
+
+        # print("Stored password hash:", user["password"])
+
+        try:
+            if bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
+                print("Passwords match!")
+                session["user_id"] = user["id"]
+                session["username"] = user["username"]
+                flash(f"Welcome back, {username}!", "success")
+                return redirect("/")
+            else:
+                # print("Passwords do not match.")  
+                flash("Invalid credentials. Please try again.", "error")
+                return redirect("/login")
+        except ValueError as e:
+            # print("Error validating password:", str(e))
+            flash("Error validating password. Please contact support.", "error")
+            return redirect("/login")
 
     return render_template("login.html")
 
@@ -58,12 +86,20 @@ def get_db_connection():
 
 @app.route("/signup", methods=["POST"])
 def signup():
-    username = request.form["username"]
-    password = request.form["password"]
+    username = request.form["username"]  
+    password = request.form["password"] 
+    
+    # print("Received username:", username)
+    # print("Received password:", password)
+
     conn = get_db_connection()
     try:
-        hashed_password = generate_password_hash(password)
-        conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        
+        # print("Generated hashed password:", hashed_password.decode('utf-8'))
+        
+        conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", 
+                     (username, hashed_password.decode('utf-8')))
         conn.commit()
         flash(f"Account created. Welcome, {username}!", "success")
     except sqlite3.IntegrityError:
@@ -71,6 +107,12 @@ def signup():
     finally:
         conn.close()
     return redirect(url_for("account_settings"))
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("You have been logged out.", "info")
+    return redirect("/login")  
 
 
 #  polygon.io has stock api for freee -> xayif58234@buides.com is email and password 

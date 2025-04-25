@@ -35,7 +35,9 @@
                     {% if session.get('user_id') %}
                         <!-- Options for logged-in users -->
                         <a href="/account_settings" class="block px-4 py-2 hover:bg-gray-100">Account Settings</a>
-                        <button onclick="logout()" class="block px-4 py-2 hover:bg-gray-100 text-red-600 w-full text-left">Logout</button>
+                        <button onclick="logout()" class="block px-4 py-2 hover:bg-gray-100 text-red-600 w-full text-left">
+                          Logout
+                      </button>
                     {% else %}
                         <!-- Options for guests -->
                         <a href="/login" class="block px-4 py-2 hover:bg-gray-100 text-blue-600 w-full text-left">Sign-Up/Login</a>
@@ -76,10 +78,10 @@
                 }
             }
 
-            // temp logout action
             function logout() {
-                alert("Logging out...");
+                window.location.href = "/logout";
             }
+
         </script>
 
     </body>
@@ -92,6 +94,7 @@
     }
   
     function logout() {
+      window.location.href = "/logout";
       alert("Logging out...");
     }
   
