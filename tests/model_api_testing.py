@@ -16,11 +16,11 @@ def test_models():
 
     assert model != "Invalid Model", "Model has been generated"
 
-    params = mod_train.get_model_params()
+    params = trainer.get_model_params()
 
     assert params is not None, "Model Parameters are accessible"
 
-    predictions = mod_train.make_predictions(5)
+    predictions = trainer.make_predictions(5)
 
     assert predictions is not None, "Model Predictions are accessible"
 
