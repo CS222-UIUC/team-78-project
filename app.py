@@ -8,10 +8,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'buil
 from models import TrainModel
 import plotly.express as px
 import plotly.io as pio
-
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
-
+import sqlite3
+from werkzeug.security import generate_password_hash, check_password_hash
 import pandas as pd
 
 

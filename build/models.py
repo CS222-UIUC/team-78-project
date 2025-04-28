@@ -1,14 +1,10 @@
-"""
-Library for model training and predictions based on user input
-"""
-
 import numpy as np
 import pandas as pd
 import yfinance as yf
 from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from statsmodels.tsa.api import ExponentialSmoothing, Holt
-from statsmodels.tsa.arima.model import ARIMA
 from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
 
 
@@ -21,7 +17,7 @@ class TrainModel:
         data.index = pd.to_datetime(data.index)
         self.date = np.array((data.index - data.index.min()).days).reshape(-1, 1)
         self.close = data["Close"].values.reshape(-1, 1)
-        self.model_name = model_name
+        self.model_name = model_name.lower()
         self.test_ratio = test_ratio
         self.model = None
 
@@ -43,42 +39,41 @@ class TrainModel:
         if self.model_name == "linear_regression":
             self.model = LinearRegression()
             self.model.fit(x_train, y_train)
-            return self.model
 
-        if self.model_name == "exponential_smoothing":
+        elif self.model_name == "random_forest":
+            self.model = RandomForestRegressor(n_estimators=100, random_state=42)
+            self.model.fit(x_train, y_train.ravel())
+
+        elif self.model_name == "exponential_smoothing":
             self.model = ExponentialSmoothing(
                 y_train.flatten(), trend="add", seasonal=None
             ).fit()
-            return self.model
 
-        if self.model_name == "holt":
+        elif self.model_name == "holt":
             self.model = Holt(y_train.flatten()).fit()
-            return self.model
 
-        if self.model_name == "ARIMA":
-            self.model = ARIMA(y_train.flatten(), order=(2, 2, 2)).fit()
-            return self.model
+        else:
+            raise ValueError(f"Invalid model name: {self.model_name}")
 
-        return "Invalid Model"
+        return self.model
 
     def get_model_params(self):
         """
         Retrieves model parameters based on specified model
         """
-        if self.model_name == "linear_regression" or isinstance(self.model, LinearRegression):
+        if isinstance(self.model, LinearRegression):
             return {
-                "coefficients": [round(c, 2) for c in self.model.coef_.flatten()],
-                "intercept": round(self.model.intercept_[0], 2),
+                "coefficients": [round(c, 4) for c in self.model.coef_.flatten()],
+                "intercept": round(float(self.model.intercept_), 4),
+            }
+
+        if isinstance(self.model, RandomForestRegressor):
+            return {
+                "feature_importances": [round(f, 4) for f in self.model.feature_importances_]
             }
 
         if self.model_name in ("holt", "exponential_smoothing"):
-            return {k: round(v, 2) for k, v in self.model.params.items()}
-
-        if self.model_name == "ARIMA" or isinstance(self.model, ARIMA):
-            return {
-                "params": [round(p, 2) for p in self.model.params],
-                "aic": round(self.model.aic, 2),
-            }
+            return {k: round(v, 4) for k, v in self.model.params.items()}
 
         return None
 
@@ -86,24 +81,22 @@ class TrainModel:
         """
         Make future predictions using the trained model
         """
-        if self.model_name == "linear_regression" or isinstance(self.model, LinearRegression):
-            future_dates = np.arange(len(self.date), len(self.date) + num_preds).reshape(-1, 1)
-            predictions = self.model.predict(future_dates).flatten().tolist()
-            return {"future_predictions": [round(p, 2) for p in predictions]}
+        if isinstance(self.model, (LinearRegression, RandomForestRegressor)):
+            future_dates = np.arange(
+                len(self.date), len(self.date) + num_preds
+            ).reshape(-1, 1)
+            preds = self.model.predict(future_dates)
+            return {"future_predictions": [round(float(p), 2) for p in preds]}
 
-        if self.model_name in ("holt", "exponential_smoothing"):
-            predictions = self.model.forecast(num_preds).tolist()
-            return {"future_predictions": [round(p, 2) for p in predictions]}
-
-        if self.model_name == "ARIMA" or isinstance(self.model, ARIMA):
-            predictions = self.model.forecast(steps=num_preds).tolist()
-            return {"future_predictions": [round(p, 2) for p in predictions]}
+        elif self.model_name in ("holt", "exponential_smoothing"):
+            preds = self.model.forecast(num_preds).tolist()
+            return {"future_predictions": [round(p, 2) for p in preds]}
 
         return None
 
     def evaluate(self):
         """
-        Compute R2, MSE, MAE on the test set.
+        Compute R2, MSE, MAE on the test set
         """
         if self.model is None:
             self.generate_model()
@@ -111,7 +104,7 @@ class TrainModel:
         x_train, x_test, y_train, y_test = self.generate_split_data()
         y_true = y_test.flatten()
 
-        if self.model_name == "linear_regression":
+        if isinstance(self.model, (LinearRegression, RandomForestRegressor)):
             y_pred = self.model.predict(x_test).flatten()
         else:
             y_pred = self.model.forecast(steps=len(y_test))
@@ -124,17 +117,10 @@ class TrainModel:
 
 
 if __name__ == "__main__":
-    apple_data = yf.Ticker("AAPL")
-    apple_df = apple_data.history(period="1y")
-    mod_train = TrainModel(apple_df, "linear_regression")
-    model = mod_train.generate_model()
+    apple_df = yf.Ticker("AAPL").history(period="1y")
+    trainer = TrainModel(apple_df, "random_forest")
+    model = trainer.generate_model()
 
-    assert model != "Invalid Model", "Model has been generated"
-
-    params = mod_train.get_model_params()
-    print(params)
-    assert params is not None, "Model Parameters are accessible"
-
-    predictions_linreg = mod_train.make_predictions(5)
-    print(predictions_linreg)
-    assert predictions_linreg is not None, "Model Predictions are accessible"
+    print("Params:", trainer.get_model_params())
+    print("Preds:", trainer.make_predictions(5))
+    print("Metrics:", trainer.evaluate())
