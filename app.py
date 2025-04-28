@@ -8,13 +8,12 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'buil
 from models import TrainModel
 import plotly.express as px
 import plotly.io as pio
-<<<<<<< HEAD
+
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
-=======
+
 import pandas as pd
 
->>>>>>> f9525a31 (added rounding to prediction values and parameter values, and implemented basic stock comparison page)
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey' 
@@ -138,7 +137,7 @@ def models():
 
 @app.route('/analysis')
 def stock_analysis():
-    return render_template('analysis.html')
+    return render_template('stock_analysis.html')
 
 @app.route('/comparison')
 def stock_comparison():
@@ -379,16 +378,26 @@ def get_stock_history_data(ticker):
             historical_data = stock.history(period=period, interval="5m")
         else:
             historical_data = stock.history(period=period)
+
         if historical_data.empty:
             return jsonify({"error": f"No historical data found for {ticker} over period '{period}'."}), 404
 
         historical_data["Close"] = historical_data["Close"].round(2)
         historical_data["Date"] = historical_data.index
-        dates = historical_data["Date"].dt.strftime("%Y-%m-%d").tolist()
+
+        if period == "1d":
+            # Include time for intraday data
+            dates = historical_data["Date"].dt.strftime("%Y-%m-%d %H:%M").tolist()
+        else:
+            dates = historical_data["Date"].dt.strftime("%Y-%m-%d").tolist()
+
         closes = historical_data["Close"].tolist()
+
         return jsonify({"history": [{"date": d, "close": c} for d, c in zip(dates, closes)]})
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 
 if __name__ == "__main__":

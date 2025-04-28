@@ -45,6 +45,16 @@
 
     <!-- Comparison Chart -->
     <h2 class="text-2xl font-bold mb-4 mt-8">Historical Price Comparison Chart</h2>
+    <div id="comparisonRangeButtons" class="hidden mt-4 mb-6 text-center">
+        <p class="text-lg font-semibold mb-2">Select Time Period</p>
+        <div class="flex flex-wrap justify-center gap-2">
+            {% for label, value in [('1D', '1d'), ('5D', '5d'), ('1M', '1mo'), ('3M', '3mo'), ('6M', '6mo'), ('1Y', '1y'), ('5Y', '5y'), ('10Y', '10y'), ('Max', 'max')] %}
+            <button class="comparison-period-btn px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" data-period="{{ value }}">
+                {{ label }}
+            </button>
+            {% endfor %}
+        </div>
+    </div>
     <div id="comparisonChart" class="bg-white p-4 shadow rounded-md"></div>
 </div>
 
@@ -67,87 +77,109 @@ document.getElementById('tickerInputs').addEventListener('click', function(e){
     }
 });
 
-// Fetch both the stock info and its historical data.
-function fetchTickerData(ticker) {
-    let trimmedTicker = ticker.trim();
-    return Promise.all([
-        fetch(`/stock/${trimmedTicker}`).then(response => response.json()),
-        fetch(`/stock/${trimmedTicker}/history_data?period=1mo`).then(response => response.json())
-    ]).then(([info, historyData]) => {
-        return {
-            ticker: trimmedTicker.toUpperCase(),
-            name: (info.name && info.name !== "N/A") ? info.name : trimmedTicker.toUpperCase(),
-            current_price: info.current_price || 'N/A',
-            market_cap: info.market_cap || 'N/A',
-            exchange: info.exchange || 'N/A',
-            sector: info.sector || 'N/A',
-            industry: info.industry || 'N/A',
-            history: historyData.history || []
-        };
-    }).catch(err => {
-        console.error('Error fetching data for', ticker, err);
-        // Return fallback data in case of error.
-        return {
-            ticker: trimmedTicker.toUpperCase(),
-            name: trimmedTicker.toUpperCase(),
-            current_price: 'N/A',
-            market_cap: 'N/A',
-            exchange: 'N/A',
-            sector: 'N/A',
-            industry: 'N/A',
-            history: []
-        };
-    });
+
+// Fetch and Render
+let currentComparisonTickers = [];  // keep track of current tickers
+
+function fetchComparisonData(tickers, period = "1mo") {
+    return Promise.all(
+        tickers.map(ticker => {
+            return Promise.all([
+                fetch(`/stock/${ticker}`).then(response => response.json()),
+                fetch(`/stock/${ticker}/history_data?period=${period}`).then(response => response.json())
+            ]).then(([info, historyData]) => {
+                return {
+                    ticker: ticker.toUpperCase(),
+                    name: (info.name && info.name !== "N/A") ? info.name : ticker.toUpperCase(),
+                    current_price: info.current_price || 'N/A',
+                    market_cap: info.market_cap || 'N/A',
+                    exchange: info.exchange || 'N/A',
+                    sector: info.sector || 'N/A',
+                    industry: info.industry || 'N/A',
+                    history: historyData.history || []
+                };
+            }).catch(err => {
+                console.error('Error fetching data for', ticker, err);
+                return {
+                    ticker: ticker.toUpperCase(),
+                    name: ticker.toUpperCase(),
+                    current_price: 'N/A',
+                    market_cap: 'N/A',
+                    exchange: 'N/A',
+                    sector: 'N/A',
+                    industry: 'N/A',
+                    history: []
+                };
+            });
+        })
+    );
 }
 
-// Handle form submission.
+function renderComparisonChart(results, period) {
+    var traces = results.map(function(item) {
+        if (item.history.length === 0) return null;
+        return {
+            x: item.history.map(point => point.date),
+            y: item.history.map(point => parseFloat(point.close)),
+            mode: 'lines',
+            name: item.ticker
+        };
+    }).filter(trace => trace !== null);
+
+    var layout = {
+        title: `Historical Close Prices (${period.toUpperCase()})`,
+        xaxis: { title: 'Date' },
+        yaxis: { title: 'Close Price (USD)' }
+    };
+
+    Plotly.newPlot('comparisonChart', traces, layout);
+}
+
 document.getElementById('comparisonForm').addEventListener('submit', function(e) {
     e.preventDefault();
     var formData = new FormData(e.target);
     var tickers = formData.getAll('tickers[]').filter(t => t.trim() !== '');
-    if(tickers.length < 2){
+    if (tickers.length < 2) {
         alert('Please enter at least two stock tickers for comparison.');
         return;
     }
-    
-    // Fetch info and history for all tickers.
-    Promise.all(tickers.map(ticker => fetchTickerData(ticker)))
-    .then(function(results) {
-         // Build the comparison table.
-         var tableBody = document.getElementById('comparisonTableBody');
-         tableBody.innerHTML = '';
-         results.forEach(function(item) {
-             var row = document.createElement('tr');
-             row.innerHTML = '<td class="py-2 px-4 border">' + item.ticker + '</td>' +
-                             '<td class="py-2 px-4 border">' + item.name + '</td>' +
-                             '<td class="py-2 px-4 border">' + item.current_price + '</td>' +
-                             '<td class="py-2 px-4 border">' + item.market_cap + '</td>' +
-                             '<td class="py-2 px-4 border">' + item.exchange + '</td>' +
-                             '<td class="py-2 px-4 border">' + item.sector + '</td>' +
-                             '<td class="py-2 px-4 border">' + item.industry + '</td>';
-             tableBody.appendChild(row);
-         });
-         
-         // Build the multi-line chart using Plotly.
-         var traces = results.map(function(item) {
-             if (item.history.length === 0) return null;
-             return {
-                 x: item.history.map(point => point.date),
-                 y: item.history.map(point => parseFloat(point.close)),
-                 mode: 'lines',
-                 name: item.ticker
-             };
-         }).filter(trace => trace !== null);
 
-         var layout = {
-             title: 'Historical Close Prices (1mo)',
-             xaxis: { title: 'Date' },
-             yaxis: { title: 'Close Price (USD)' }
-         };
-         Plotly.newPlot('comparisonChart', traces, layout);
-         
-         document.getElementById('comparisonResults').classList.remove('hidden');
-    });
+    currentComparisonTickers = tickers.map(t => t.trim().toUpperCase());
+
+    fetchComparisonData(currentComparisonTickers)
+        .then(results => {
+            var tableBody = document.getElementById('comparisonTableBody');
+            tableBody.innerHTML = '';
+            results.forEach(function(item) {
+                var row = document.createElement('tr');
+                row.innerHTML = '<td class="py-2 px-4 border">' + item.ticker + '</td>' +
+                                '<td class="py-2 px-4 border">' + item.name + '</td>' +
+                                '<td class="py-2 px-4 border">' + item.current_price + '</td>' +
+                                '<td class="py-2 px-4 border">' + item.market_cap + '</td>' +
+                                '<td class="py-2 px-4 border">' + item.exchange + '</td>' +
+                                '<td class="py-2 px-4 border">' + item.sector + '</td>' +
+                                '<td class="py-2 px-4 border">' + item.industry + '</td>';
+                tableBody.appendChild(row);
+            });
+
+            renderComparisonChart(results, "1mo");
+
+            document.getElementById('comparisonResults').classList.remove('hidden');
+            document.getElementById('comparisonRangeButtons').classList.remove('hidden');
+        });
+});
+
+// Handle period button clicks
+document.getElementById('comparisonRangeButtons').addEventListener('click', function(e) {
+    if (e.target && e.target.matches(".comparison-period-btn")) {
+        var selectedPeriod = e.target.getAttribute("data-period");
+        if (currentComparisonTickers.length > 0) {
+            fetchComparisonData(currentComparisonTickers, selectedPeriod)
+                .then(results => {
+                    renderComparisonChart(results, selectedPeriod);
+                });
+        }
+    }
 });
 </script>
 {% endblock %}
