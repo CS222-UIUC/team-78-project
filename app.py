@@ -328,62 +328,6 @@ def get_stock_graph(ticker):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/compare/<ticker1>/<ticker2>/graph', methods=['GET'])
-def get_compare_stock_graph(ticker1, ticker2):
-    try:
-        period = request.args.get("period", "1mo")
-        valid_periods = {"1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "max"}
-        if period not in valid_periods:
-            return jsonify({"error": f"Invalid period '{period}'. Valid options: {', '.join(valid_periods)}"}), 400
-
-        # Download data
-        tickers = [ticker1, ticker2]
-        interval = "1d"
-        if period in ["1d"]:
-            interval = "5m"
-        elif period in ["5d","1mo", "3mo"]:
-            interval = "1d"
-        elif period in ["6mo", "1y"]:
-            interval = "1d"
-        elif period in ["2y", "5y", "10y", "max"]:
-            interval = "1wk"
-        data = yf.download(tickers, period=period, interval=interval, group_by='ticker', auto_adjust=True)
-
-        # Check if data exists
-        if data.empty:
-            return jsonify({"error": f"No historical data found for {ticker1} and {ticker2} over period '{period}'."}), 404
-
-        # Extract and prepare data
-        df1 = data[ticker1]["Close"].rename(ticker1)
-        df2 = data[ticker2]["Close"].rename(ticker2)
-
-        combined = pd.concat([df1, df2], axis=1).dropna()
-        combined = combined.round(2)
-        combined["Date"] = combined.index
-
-        # Plot
-        fig = px.line(
-            combined,
-            x="Date",
-            y=[ticker1, ticker2],
-            title=f"{ticker1.upper()} vs {ticker2.upper()} Stock Prices ({period})",
-            labels={"value": "Close Price", "variable": "Ticker"},
-        )
-
-        fig.update_layout(
-            xaxis_title="Date",
-            yaxis_title="Close Price",
-            hovermode="x unified",
-            template="plotly_white"
-        )
-
-        graph_html = pio.to_html(fig, full_html=False)
-
-        return jsonify({"graph_html": graph_html})
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 @app.route('/stock/<ticker>/history_data', methods=['GET'])
 def get_stock_history_data(ticker):
     try:
@@ -417,6 +361,99 @@ def get_stock_history_data(ticker):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/stock/<ticker>/percent_change', methods=['GET'])
+def get_percent_change(ticker):
+    try:    
+        # Get period from query parameters, default to 1 month
+        period = request.args.get("period", "1mo")
+
+        # Validate the period input
+        valid_periods = {"1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "max"}
+        if period not in valid_periods:
+            return jsonify({"error": f"Invalid period '{period}'. Valid options: {', '.join(valid_periods)}"}), 400
+        
+        stock = yf.Ticker(ticker)
+        
+        # Handle one day differently 
+        if period == "1d":
+            historical_data = stock.history(period = period, interval = "5m")
+        else: 
+            # Otherwise just use interval of one day
+            historical_data = stock.history(period=period)
+        # If there's not enough data, return an error
+        if historical_data.empty:
+            return jsonify({"error": f"No historical data found for {ticker} over period '{period}'."}), 404
+      
+        # Optionally resample for long periods
+        long_periods = {"2y", "5y", "10y", "max"}
+        if period in long_periods:
+            historical_data = historical_data.resample("1W").mean()  # Weekly average
+            
+        # Process data 
+        historical_data["Date"] = historical_data.index
+        historical_data["Close"] = historical_data["Close"].round(2)
+        historical_data["Percent Change"] = ((historical_data["Close"] / historical_data["Close"].iloc[0]) - 1) * 100
+        historical_data["Percent Change"] = historical_data["Percent Change"].round(2)
+
+        # Return only date, close, and percent change
+        response_data = historical_data[["Date", "Close", "Percent Change"]].reset_index(drop=True)
+        response_data["Date"] = response_data["Date"].dt.strftime('%Y-%m-%d %H:%M:%S')
+
+        return jsonify(response_data.to_dict(orient="records"))
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+def format_volume(volume):
+    """Convert volume to a human-readable format."""
+    if volume is None:
+        return "N/A"
+    elif volume >= 1e12:
+        return f"{volume / 1e12:.2f}T"
+    elif volume >= 1e9:
+        return f"{volume / 1e9:.2f}B"
+    elif volume >= 1e6:
+        return f"{volume / 1e6:.2f}M"
+    else:
+        return f"{volume:.2f}"
+
+@app.route('/stock/<ticker>/volume', methods=['GET'])
+def get_volume(ticker):
+    try:
+        # Get period from query parameters, default to 1 month
+        period = request.args.get("period", "1mo")
+        
+        # Validate the period input
+        valid_periods = {"1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "10y", "max"}
+        if period not in valid_periods:
+            return jsonify({"error": f"Invalid period '{period}'. Valid options: {', '.join(valid_periods)}"}), 400
+
+        stock = yf.Ticker(ticker)
+        # Handle one day differently 
+        if period == "1d":
+            historical_data = stock.history(period=period, interval="5m")
+        else:
+            historical_data = stock.history(period=period)
+
+        if historical_data.empty:
+            return jsonify({"error": f"No volume data found for {ticker} over period '{period}'."}), 404
+
+        # Optionally resample for long periods
+        long_periods = {"2y", "5y", "10y", "max"}
+        if period in long_periods:
+            historical_data = historical_data.resample("1W").mean()
+
+        # Process data 
+        historical_data["Date"] = historical_data.index
+        response_data = historical_data[["Date", "Volume"]].reset_index(drop=True)
+        response_data["Date"] = response_data["Date"].dt.strftime('%Y-%m-%d %H:%M:%S')
+        response_data["Volume"] = response_data["Volume"].apply(format_volume)
+
+        return jsonify(response_data.to_dict(orient="records"))
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 
 
 if __name__ == "__main__":
