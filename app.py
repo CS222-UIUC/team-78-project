@@ -8,13 +8,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), 'buil
 from models import TrainModel
 import plotly.express as px
 import plotly.io as pio
-<<<<<<< HEAD
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
-=======
 import pandas as pd
 
->>>>>>> f9525a31 (added rounding to prediction values and parameter values, and implemented basic stock comparison page)
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey' 
@@ -138,7 +135,7 @@ def models():
 
 @app.route('/analysis')
 def stock_analysis():
-    return render_template('analysis.html')
+    return render_template('stock_analysis.html')
 
 @app.route('/comparison')
 def stock_comparison():
