@@ -13,6 +13,17 @@ cursor.execute('''
     )
 ''')
 
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS favorites (
+        id       INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id  INTEGER NOT NULL,
+        symbol   TEXT NOT NULL,
+        UNIQUE(user_id, symbol),          -- prevents duplicates
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+''')
+connection.commit()
+
 def add_user(username, plaintext_password):
     hashed_password = generate_password_hash(plaintext_password)
     try:

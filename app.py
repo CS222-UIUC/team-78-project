@@ -174,37 +174,56 @@ def search():
 
 @app.route('/favorite', methods=['POST'])
 def favorite():
-    symbol = request.form.get('symbol')
+    symbol = request.form.get('symbol', '').upper()
+    if not symbol:
+        return redirect(url_for('index'))
 
-    if 'favorites' not in session:
-        session['favorites'] = []
+    # user must be logged in
+    if 'user_id' not in session:
+        flash("Please log in to save favourites.", "error")
+        return redirect(url_for('login'))
 
- 
-    if symbol and symbol not in session['favorites']:
-        session['favorites'].append(symbol)
-        session.modified = True
+    user_id = session['user_id']
+    conn = get_db_connection()
+    conn.execute(
+        'INSERT OR IGNORE INTO favorites (user_id, symbol) VALUES (?, ?)',
+        (user_id, symbol)
+    )
+    conn.commit()
+    conn.close()
 
     return redirect(url_for('search', q=symbol))
 
+
 @app.route('/favorites')
 def favorites():
-    favorite_symbols = session.get('favorites', [])
-    favorite_data = []
+    if 'user_id' not in session:
+        flash("Log in to see your favourites.", "error")
+        return redirect(url_for('login'))
 
-    for symbol in favorite_symbols:
+    conn = get_db_connection()
+    rows = conn.execute(
+        'SELECT symbol FROM favorites WHERE user_id = ?',
+        (session['user_id'],)
+    ).fetchall()
+    conn.close()
+
+    symbols = [row['symbol'] for row in rows]
+    favorite_data = []
+    for sym in symbols:
         try:
-            stock = yf.Ticker(symbol)
-            info = stock.info
+            info = yf.Ticker(sym).info
             favorite_data.append({
-                "symbol": symbol,
+                "symbol": sym,
                 "name": info.get("longName", "Unknown"),
                 "price": info.get("regularMarketPrice", "N/A"),
-                "currency": info.get("currency", "USD")
+                "currency": info.get("currency", "USD"),
             })
         except Exception as e:
-            print(f"Error fetching favorite stock info: {e}")
+            app.logger.warning(f"Ticker fetch failed for {sym}: {e}")
 
     return render_template('favorites.html', favorites=favorite_data)
+
     
 
 def format_market_cap(market_cap):
