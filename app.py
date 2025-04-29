@@ -13,6 +13,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 import pandas as pd
+import plotly.graph_objs as go
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+import numpy as np
 
 
 app = Flask(__name__)
@@ -108,6 +112,8 @@ def models():
     prediction_horizon = 1  
     predictions = None
     metrics = None
+    plot_html = None
+
     if request.method == 'POST':
         ticker_query = request.form.get('q').upper() 
         time_period = request.form.get('time_period')  
@@ -124,16 +130,58 @@ def models():
             train_mod.generate_model()
             predictions = train_mod.make_predictions(prediction_horizon)
             metrics = train_mod.evaluate()
+            
+            x_all_days = train_mod.date.flatten()
+            y_all_close = train_mod.close.flatten()
 
+            # Model fitted predictions over training period
+            if isinstance(train_mod.model, (LinearRegression, RandomForestRegressor)):
+                fitted_preds = train_mod.model.predict(train_mod.date).flatten()
+            else:
+                fitted_preds = train_mod.model.fittedvalues  # Holt/ExponentialSmoothing
+
+            # Future dates
+            future_x = np.arange(x_all_days[-1], x_all_days[-1] + prediction_horizon + 1)
+            future_preds = predictions["future_predictions"]
+
+            fig = go.Figure()
+
+            fig.add_trace(go.Scatter(
+                x=x_all_days, y=y_all_close,
+                mode="markers+lines", name="Historical Close Prices"
+            ))
+
+            fig.add_trace(go.Scatter(
+                x=x_all_days, y=fitted_preds,
+                mode="lines", name="Model Fit"
+            ))
+
+            fig.add_trace(go.Scatter(
+                x=future_x, y=future_preds,
+                mode="markers+lines", name="Future Predictions"
+            ))
+
+            fig.update_layout(
+                title=f"{ticker_query.upper()} Stock Price Prediction",
+                xaxis_title="Days since start",
+                yaxis_title="Price ($)",
+                template="plotly_white",
+                height=500,
+            )
+
+            plot_html = pio.to_html(fig, full_html=False)
 
     return render_template('predict.html', 
-                               ticker_query=ticker_query, 
-                               time_period=time_period, 
-                               model_type=model_type, 
-                               prediction_horizon=prediction_horizon, 
-                               predictions = predictions,
-                               metrics = metrics)
-    
+        ticker_query=ticker_query, 
+        time_period=time_period, 
+        model_type=model_type, 
+        prediction_horizon=prediction_horizon, 
+        predictions=predictions,
+        metrics=metrics,
+        plot_html=plot_html, 
+    )
+
+
 
 @app.route('/analysis')
 def stock_analysis():
