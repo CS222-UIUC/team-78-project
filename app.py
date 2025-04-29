@@ -16,11 +16,41 @@ import plotly.express as px
 import plotly.io as pio
 import sqlite3
 from database_setup import add_user
+import re
 
 import bcrypt
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey' 
+
+
+@app.route("/update_email", methods=["POST"])
+def update_email():
+    new_email = request.form["email"]
+    user_id = session.get("user_id") 
+
+    # Validate the new email (optional)
+    if not re.match(r'^[\w\.-]+@[\w\.-]+\.\w+$', new_email):
+        flash("Invalid email format. Please try again.", "error")
+        return redirect("/account_settings")
+
+    conn = get_db_connection()
+    try:
+        conn.execute("UPDATE users SET email = ? WHERE id = ?", (new_email, user_id))
+        conn.commit()
+        session["email"] = new_email  
+        flash("Email updated successfully!", "success")
+    except sqlite3.IntegrityError:
+        flash("Email already exists. Please choose a different one.", "error")
+    finally:
+        conn.close()
+    return redirect("/account_settings")
+
+
+def is_valid_email(email):
+    email_regex = r'^[\w\.-]+@[\w\.-]+\.\w+$'  # email verif regex
+    return re.match(email_regex, email) is not None
+
 
 @app.route("/debug_users")
 def debug_users():
@@ -30,51 +60,103 @@ def debug_users():
 
     rows = cursor.execute("SELECT * FROM users").fetchall()
 
-    # print("Users table content:")
-    # for row in rows:
-    #     print(dict(row)) 
+    print("Users table content:")
+    for row in rows:
+        print(dict(row)) 
 
     conn.close()
     return "Check console for users table content."
 
+# do not delete yet, still working out some bugs with database !!
+# @app.route("/login", methods=["GET", "POST"])
+# def login():
+#     if request.method == "POST":
+#         username = request.form["username"]
+#         password = request.form["password"]
+
+#         # print("Received username:", username)
+#         # print("Received password:", password)
+
+#         conn = sqlite3.connect("database.db")
+#         conn.row_factory = sqlite3.Row
+#         user = conn.execute("SELECT id, username, password FROM users WHERE username = ?", (username,)).fetchone()
+#         conn.close()
+
+#         # print("Retrieved user from database:", user)
+
+#         if user is None:
+#             print("User not found.")  
+#             flash("Invalid username or password.", "error")
+#             return redirect("/login") 
+
+#         # print("Stored password hash:", user["password"])
+
+#         try:
+#             if bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
+#                 print("Passwords match!")
+#                 session["user_id"] = user["id"]
+#                 session["username"] = user["username"]
+#                 flash(f"Welcome back, {username}!", "success")
+#                 return redirect("/")
+#             else:
+#                 # print("Passwords do not match.")  
+#                 flash("Invalid credentials. Please try again.", "error")
+#                 return redirect("/login")
+#         except ValueError as e:
+#             # print("Error validating password:", str(e))
+#             flash("Error validating password. Please contact support.", "error")
+#             return redirect("/login")
+
+#     return render_template("login.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        username = request.form.get("username", None)
+        password = request.form.get("password", None)
 
-        # print("Received username:", username)
-        # print("Received password:", password)
+        #debug
+        print(f"Username received: {username}, Password received: {password}")
+
+        if not username or not password:
+            flash("Please provide both username/email and password.", "error")
+            print("Missing username or password.") 
+            return redirect("/login")
 
         conn = sqlite3.connect("database.db")
         conn.row_factory = sqlite3.Row
-        user = conn.execute("SELECT id, username, password FROM users WHERE username = ?", (username,)).fetchone()
+
+        # case sensitive data query for username or email
+        
+        user = conn.execute(
+            "SELECT id, username, password, email FROM users WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?)", 
+            (username.lower(), username.lower())
+        ).fetchone()
+
         conn.close()
 
-        # print("Retrieved user from database:", user)
-
         if user is None:
-            print("User not found.")  
             flash("Invalid username or password.", "error")
-            return redirect("/login") 
-
-        # print("Stored password hash:", user["password"])
+            print("User not found.")  
+            return redirect("/login")
 
         try:
             if bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
-                print("Passwords match!")
                 session["user_id"] = user["id"]
                 session["username"] = user["username"]
-                flash(f"Welcome back, {username}!", "success")
+                
+                flash(f"Welcome back, {user['username']}!", "success")
+                
+                print("Login successful!")  
                 return redirect("/")
             else:
-                # print("Passwords do not match.")  
                 flash("Invalid credentials. Please try again.", "error")
+                print("Password mismatch.")  
                 return redirect("/login")
         except ValueError as e:
-            # print("Error validating password:", str(e))
             flash("Error validating password. Please contact support.", "error")
+            
+            print("Error during password validation:", e)  
             return redirect("/login")
 
     return render_template("login.html")
@@ -84,29 +166,56 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row 
     return conn
 
+# do not delete yet, still working out some bugs with database !!
+# @app.route("/signup", methods=["POST"])
+# def signup():
+#     username = request.form["username"]  
+#     password = request.form["password"] 
+    
+#     # print("Received username:", username)
+#     # print("Received password:", password)
+
+#     conn = get_db_connection()
+#     try:
+#         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        
+#         # print("Generated hashed password:", hashed_password.decode('utf-8'))
+        
+#         conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", 
+#                      (username, hashed_password.decode('utf-8')))
+#         conn.commit()
+#         flash(f"Account created. Welcome, {username}!", "success")
+#     except sqlite3.IntegrityError:
+#         flash("Username already exists. Please choose a different username.", "error")
+#     finally:
+#         conn.close()
+#     return redirect(url_for("account_settings"))
+
 @app.route("/signup", methods=["POST"])
 def signup():
-    username = request.form["username"]  
-    password = request.form["password"] 
-    
-    # print("Received username:", username)
-    # print("Received password:", password)
+    username = request.form["username"]
+    password = request.form["password"]
+    email = request.form["email"]  
+
+    if not is_valid_email(email):
+        flash("Invalid email address. Please provide a valid email.", "error")
+        return redirect(url_for("account_settings"))
 
     conn = get_db_connection()
+
     try:
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-        
-        # print("Generated hashed password:", hashed_password.decode('utf-8'))
-        
-        conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", 
-                     (username, hashed_password.decode('utf-8')))
+
+        conn.execute("INSERT INTO users (username, password, email) VALUES (?, ?, ?)", 
+                     (username, hashed_password.decode('utf-8'), email))
         conn.commit()
         flash(f"Account created. Welcome, {username}!", "success")
     except sqlite3.IntegrityError:
-        flash("Username already exists. Please choose a different username.", "error")
+        flash("Username or email already exists. Please choose a different one.", "error")
     finally:
         conn.close()
     return redirect(url_for("account_settings"))
+
 
 @app.route("/logout")
 def logout():

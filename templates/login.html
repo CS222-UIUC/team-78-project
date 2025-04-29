@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
+
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +10,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100">
+
+    
+    
     <div class="min-h-screen flex items-center justify-center">
         <div class="max-w-md w-full bg-white shadow-md rounded-md p-8">
             <!-- Tabs for Login/Sign Up -->
@@ -25,7 +30,7 @@
                 <h1 class="text-xl font-bold mb-4 text-center">Log In</h1>
                 <form action="/login" method="POST">
                     <div class="mb-4">
-                        <label for="username" class="block text-sm font-medium">Username</label>
+                        <label for="username" class="block text-sm font-medium">Username or Email</label>
                         <input type="text" id="username" name="username" required
                                class="p-2 text-sm text-black focus:outline-none border border-gray-300 rounded-md w-full">
                     </div>
@@ -51,12 +56,12 @@
                     </div>
                     <div class="mb-4">
                         <label for="username" class="block text-sm font-medium">Username</label>
-                        <input type="text" id="signupUsername" name="username" required
+                        <input type="text" id="username" name="username" required
                                class="p-2 text-sm text-black focus:outline-none border border-gray-300 rounded-md w-full">
                     </div>
                     <div class="mb-4">
                         <label for="password" class="block text-sm font-medium">Password</label>
-                        <input type="password" id="signupPassword" name="password" required
+                        <input type="password" id="password" name="password" required
                                class="p-2 text-sm text-black focus:outline-none border border-gray-300 rounded-md w-full">
                     </div>
                     <div class="mb-6">
@@ -72,8 +77,12 @@
         </div>
     </div>
 
+e    
+    
+
     <script>
-        // JavaScript for toggling between Login and Sign Up forms
+
+        
         const loginTab = document.getElementById('loginTab');
         const signUpTab = document.getElementById('signUpTab');
         const loginContent = document.getElementById('loginContent');
@@ -94,6 +103,9 @@
             loginTab.classList.remove('bg-blue-700');
             loginTab.classList.add('bg-gray-600');
         });
+
+        
     </script>
 </body>
 </html>
+

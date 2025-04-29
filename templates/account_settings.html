@@ -20,13 +20,21 @@
                 <img src="{{ url_for('static', filename='images/fillerimg.png') }}" alt="Profile Picture" 
                      class="w-24 h-24 rounded-full border-2 border-gray-300 object-cover" />
                 
-                <div>
-                    <h2 class="text-xl font-bold">{{ session.get('username') }}</h2>
-                    <p class="text-gray-600">{{ session.get('email', 'No email provided') }}</p>
-                    <button class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                        Edit Profile Picture
-                    </button>
-                </div>
+                     <div id="email-edit-form" class="hidden">
+                        <form method="POST" action="/update_email">
+                            <label for="email" class="block text-sm font-medium">Update Email</label>
+                            <input type="email" id="email" name="email" required
+                                   class="p-2 text-sm text-black focus:outline-none border border-gray-300 rounded-md w-full">
+                            <button type="submit" class="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save</button>
+                        </form>
+                    </div>
+                    
+                    <script>
+                    function showEmailEditForm() {
+                        document.getElementById("email-edit-form").classList.remove("hidden");
+                    }
+                    </script>
+                    
             </div>
 
             <!-- Settings Info Table -->
@@ -50,9 +58,9 @@
                         <td class="py-2 px-4">Email</td>
                         <td class="py-2 px-4">{{ session.get('email', 'No email provided') }}</td>
                         <td class="py-2 px-4 text-center">
-                            <button class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Edit</button>
+                            <button onclick="showEmailEditForm()" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Edit</button>
                         </td>
-                    </tr>
+                    </tr>                    
                     <tr>
                         <td class="py-2 px-4">Password</td>
                         <td class="py-2 px-4">********</td>
