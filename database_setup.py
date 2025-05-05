@@ -29,18 +29,6 @@ def add_user(username, plaintext_password, email):
     except sqlite3.IntegrityError:
         print(f"User '{username}' or email '{email}' already exists!")
 
-
-# one username passsword set is username, password, email@gmail.com
-# enasure that email domans beyond gmail like yahoo, hotmail, etc are inclided
-
-
-# cursor.execute("DELETE FROM users") #done to restructure to add emails to db
-# add_user('testUser', 'password123', 'testemail@gmail.com') #done AFTER restructure to add emails to db
-add_user('testUser', 'password123', 'testemail@gmail.com')
-add_user('sampleUser', 'securepassword', 'sampleuser@yahoo.com')
-add_user('exampleUser', 'mypassword', 'exampleuser@hotmail.com')
-
-
 rows = cursor.execute("SELECT * FROM users").fetchall()
 for row in rows:
     print(row)

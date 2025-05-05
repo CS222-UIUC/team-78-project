@@ -29,5 +29,4 @@
 ###### its good practice after a few changes to quit (command-c) and re-run using npm start 
 to get out of virtual env do deactivate and then when you run python app.py it will go back in venv
 
-
 <!-- Command + Shift + V in VSCode for Preview -->
