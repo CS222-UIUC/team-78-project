@@ -50,6 +50,26 @@
               </select>
             </div>
 
+          <div>
+            <label for="model_type" class="block text-sm font-medium text-gray-700 mb-1">Model Type</label>
+            <select
+              id="model_type" name="model_type"
+              class="w-full border border-gray-300 rounded-md p-3 focus:outline-none"
+            >
+              <option value="linear_regression" {% if model_type=='linear_regression' %}selected{% endif %}>
+                Linear Regression
+              </option>
+              <option value="random_forest" {% if model_type=='random_forest' %}selected{% endif %}>
+                Random Forest Regressor
+              </option>
+              <option value="k_neighbors" {% if model_type=='k_neighbors' %}selected{% endif %}>
+                k-Nearest Neighbors Regressor
+              </option>
+              <option value="svr" {% if model_type=='svr' %}selected{% endif %}>
+                Support Vector Regression
+              </option>
+            </select>
+          </div>
             <div>
               <label for="model_type" class="block text-sm font-medium text-gray-700 mb-1">Model Type</label>
               <select
