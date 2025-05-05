@@ -57,9 +57,11 @@
               <option value="random_forest" {% if model_type=='random_forest' %}selected{% endif %}>
                 Random Forest Regressor
               </option>
-              <option value="holt" {% if model_type=='holt' %}selected{% endif %}>Holt’s Linear</option>
-              <option value="exponential_smoothing" {% if model_type=='exponential_smoothing' %}selected{% endif %}>
-                Exponential Smoothing
+              <option value="k_neighbors" {% if model_type=='k_neighbors' %}selected{% endif %}>
+                k-Nearest Neighbors Regressor
+              </option>
+              <option value="svr" {% if model_type=='svr' %}selected{% endif %}>
+                Support Vector Regression
               </option>
             </select>
           </div>
