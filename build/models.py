@@ -15,6 +15,7 @@ class TrainModel:
 
     def __init__(self, data, model_name, test_ratio=0.2):
         data.index = pd.to_datetime(data.index)
+        self.dates = data.index
         self.date = np.array((data.index - data.index.min()).days).reshape(-1, 1)
         self.close = data["Close"].values.reshape(-1, 1)
         self.model_name = model_name.lower()
@@ -34,26 +35,24 @@ class TrainModel:
         """
         Fits model on training data based on model type
         """
-        x_train, x_test, y_train, y_test = self.generate_split_data()
-
-        if self.model_name == "linear_regression":
-            self.model = LinearRegression()
-            self.model.fit(x_train, y_train)
-
-        elif self.model_name == "random_forest":
-            self.model = RandomForestRegressor(n_estimators=100, random_state=42)
-            self.model.fit(x_train, y_train.ravel())
-
-        elif self.model_name == "exponential_smoothing":
-            self.model = ExponentialSmoothing(
-                y_train.flatten(), trend="add", seasonal=None
-            ).fit()
-
-        elif self.model_name == "holt":
-            self.model = Holt(y_train.flatten()).fit()
+        if self.model_name in ("holt", "exponential_smoothing"):
+            if self.model_name == "exponential_smoothing":
+                self.model = ExponentialSmoothing(
+                    self.close.flatten(), trend="add", seasonal=None
+                ).fit()
+            else:
+                self.model = Holt(self.close.flatten()).fit()
 
         else:
-            raise ValueError(f"Invalid model name: {self.model_name}")
+            x_train, x_test, y_train, y_test = self.generate_split_data()
+            if self.model_name == "linear_regression":
+                self.model = LinearRegression()
+                self.model.fit(x_train, y_train)
+            elif self.model_name == "random_forest":
+                self.model = RandomForestRegressor(n_estimators=100, random_state=42)
+                self.model.fit(x_train, y_train.ravel())
+            else:
+                raise ValueError(f"Invalid model name: {self.model_name}")
 
         return self.model
 
@@ -101,13 +100,15 @@ class TrainModel:
         if self.model is None:
             self.generate_model()
 
-        x_train, x_test, y_train, y_test = self.generate_split_data()
-        y_true = y_test.flatten()
-
         if isinstance(self.model, (LinearRegression, RandomForestRegressor)):
+            x_train, x_test, y_train, y_test = self.generate_split_data()
             y_pred = self.model.predict(x_test).flatten()
+            y_true = y_test.flatten()
+
         else:
-            y_pred = self.model.forecast(steps=len(y_test))
+            test_size = int(len(self.close) * self.test_ratio)
+            y_true = self.close[-test_size:].flatten()
+            y_pred = self.model.forecast(steps=test_size)
 
         return {
             "r2":  r2_score(y_true, y_pred),

@@ -131,39 +131,41 @@ def models():
             predictions = train_mod.make_predictions(prediction_horizon)
             metrics = train_mod.evaluate()
             
-            x_all_days = train_mod.date.flatten()
-            y_all_close = train_mod.close.flatten()
+            x_all_dates = train_mod.dates
+            y_all_close = np.array(train_mod.close.flatten()).round(2)
 
             # Model fitted predictions over training period
             if isinstance(train_mod.model, (LinearRegression, RandomForestRegressor)):
                 fitted_preds = train_mod.model.predict(train_mod.date).flatten()
             else:
                 fitted_preds = train_mod.model.fittedvalues  # Holt/ExponentialSmoothing
-
+            fitted_preds = fitted_preds.round(2)
             # Future dates
-            future_x = np.arange(x_all_days[-1], x_all_days[-1] + prediction_horizon + 1)
-            future_preds = predictions["future_predictions"]
+            last_date = x_all_dates[-1]
+            future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=prediction_horizon)
+
+            future_preds = np.array(predictions["future_predictions"]).round(2)
 
             fig = go.Figure()
 
             fig.add_trace(go.Scatter(
-                x=x_all_days, y=y_all_close,
-                mode="markers+lines", name="Historical Close Prices"
+                x=x_all_dates, y=y_all_close,
+                mode="lines", name="Historical Close"
             ))
 
             fig.add_trace(go.Scatter(
-                x=x_all_days, y=fitted_preds,
+                x=x_all_dates, y=fitted_preds,
                 mode="lines", name="Model Fit"
             ))
 
             fig.add_trace(go.Scatter(
-                x=future_x, y=future_preds,
-                mode="markers+lines", name="Future Predictions"
+                x=future_dates, y=future_preds,
+                mode="lines", name="Predictions"
             ))
 
             fig.update_layout(
                 title=f"{ticker_query.upper()} Stock Price Prediction",
-                xaxis_title="Days since start",
+                xaxis_title="Date",
                 yaxis_title="Price ($)",
                 template="plotly_white",
                 height=500,
