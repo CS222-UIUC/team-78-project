@@ -62,17 +62,24 @@ class TrainModel:
         """
         if isinstance(self.model, LinearRegression):
             return {
-                "coefficients": [round(c, 4) for c in self.model.coef_.flatten()],
-                "intercept": round(float(self.model.intercept_), 4),
+                "Slope": [round(c, 4) for c in self.model.coef_.flatten()][0],
+                "Intercept": round(float(self.model.intercept_), 4),
             }
 
-        if isinstance(self.model, RandomForestRegressor):
-            return {
-                "feature_importances": [round(f, 4) for f in self.model.feature_importances_]
-            }
+        # if isinstance(self.model, RandomForestRegressor):
+        #     return {
+        #         "feature_importances": [round(f, 4) for f in self.model.feature_importances_]
+        #     }
 
         if self.model_name in ("holt", "exponential_smoothing"):
-            return {k: round(v, 4) for k, v in self.model.params.items()}
+            result = {}
+            for k, v in self.model.params.items():
+                if isinstance(v, np.ndarray):
+                    result[k] = [round(float(x), 4) for x in v.flatten()]
+                else:
+                    if (v):
+                        result[k] = round(float(v), 4)
+            return result
 
         return None
 

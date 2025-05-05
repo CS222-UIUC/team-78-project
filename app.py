@@ -180,6 +180,7 @@ def models():
         prediction_horizon=prediction_horizon, 
         predictions=predictions,
         metrics=metrics,
+        model_params=train_mod.get_model_params(),
         plot_html=plot_html, 
     )
 

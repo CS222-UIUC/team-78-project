@@ -101,12 +101,25 @@
                 <li><span class="font-semibold">MAE:</span> {{ metrics.mae|round(4) }}</li>
               </ul>
             </div>
+
+            {% if model_params %}
+            <div class="bg-white rounded-md px-8 py-6 shadow-md flex flex-col items-center text-center">
+              <h3 class="text-2xl font-bold mb-6">Model Parameters</h3>
+              <ul class="space-y-2 text-base">
+                {% for key, value in model_params.items() %}
+                  <li><span class="font-semibold">{{ key }}:</span> {{ value }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+            
           {% else %}
             <div class="bg-gray-50 rounded-md p-6 text-center text-gray-600">
               No predictions available. Please submit the form.
             </div>
           {% endif %}
         </div>
+        
 
       </div>
 
