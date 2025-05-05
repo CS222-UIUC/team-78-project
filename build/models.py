@@ -15,7 +15,6 @@ class TrainModel:
 
     def __init__(self, data, model_name, test_ratio=0.2):
         data.index = pd.to_datetime(data.index)
-        # convert dates to “days since start”
         self.date = np.array((data.index - data.index.min()).days).reshape(-1, 1)
         self.close = data["Close"].values.reshape(-1, 1)
         self.model_name = model_name.lower()

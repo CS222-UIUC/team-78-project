@@ -16,34 +16,39 @@
   {% endblock %}
 
   {% block page_description %}
-    <div class="mt-8 max-w-6xl mx-auto flex flex-col md:flex-row gap-8 px-4">
-      <div class="md:w-1/2">
-        <form action="{{ url_for('models') }}" method="POST"
-              class="bg-white rounded-md px-8 py-6 shadow-md space-y-6">
-          <h2 class="text-2xl font-semibold text-center">Stock Prediction Setup</h2>
+    <div class="mt-8 max-w-6xl mx-auto flex flex-col gap-8 px-4">
+      
+      <!-- First Row: Form + Metrics side by side -->
+      <div class="flex flex-col md:flex-row gap-8">
+        
+        <!-- Form Section -->
+        <div class="md:w-1/2">
+          <form action="{{ url_for('models') }}" method="POST"
+                class="bg-white rounded-md px-8 py-6 shadow-md space-y-6">
+            <h2 class="text-2xl font-semibold text-center">Stock Prediction Setup</h2>
 
-          <div>
-            <label for="ticker" class="block text-sm font-medium text-gray-700 mb-1">Stock Symbol</label>
-            <input
-              id="ticker" name="q" type="text"
-              placeholder="e.g. AAPL, TSLA"
-              class="w-full border border-gray-300 rounded-md p-3 focus:outline-none"
-              value="{{ ticker_query or '' }}"
-            />
-          </div>
+            <div>
+              <label for="ticker" class="block text-sm font-medium text-gray-700 mb-1">Stock Symbol</label>
+              <input
+                id="ticker" name="q" type="text"
+                placeholder="e.g. AAPL, TSLA"
+                class="w-full border border-gray-300 rounded-md p-3 focus:outline-none"
+                value="{{ ticker_query or '' }}"
+              />
+            </div>
 
-          <div>
-            <label for="time_period" class="block text-sm font-medium text-gray-700 mb-1">Time Period</label>
-            <select
-              id="time_period" name="time_period"
-              class="w-full border border-gray-300 rounded-md p-3 focus:outline-none"
-            >
-              <option value="1y" {% if time_period=='1y' %}selected{% endif %}>1 Year</option>
-              <option value="2y" {% if time_period=='2y' %}selected{% endif %}>2 Years</option>
-              <option value="5y" {% if time_period=='5y' %}selected{% endif %}>5 Years</option>
-              <option value="10y" {% if time_period=='10y' %}selected{% endif %}>10 Years</option>
-            </select>
-          </div>
+            <div>
+              <label for="time_period" class="block text-sm font-medium text-gray-700 mb-1">Time Period</label>
+              <select
+                id="time_period" name="time_period"
+                class="w-full border border-gray-300 rounded-md p-3 focus:outline-none"
+              >
+                <option value="1y" {% if time_period=='1y' %}selected{% endif %}>1 Year</option>
+                <option value="2y" {% if time_period=='2y' %}selected{% endif %}>2 Years</option>
+                <option value="5y" {% if time_period=='5y' %}selected{% endif %}>5 Years</option>
+                <option value="10y" {% if time_period=='10y' %}selected{% endif %}>10 Years</option>
+              </select>
+            </div>
 
           <div>
             <label for="model_type" class="block text-sm font-medium text-gray-700 mb-1">Model Type</label>
@@ -65,57 +70,90 @@
               </option>
             </select>
           </div>
+            <div>
+              <label for="model_type" class="block text-sm font-medium text-gray-700 mb-1">Model Type</label>
+              <select
+                id="model_type" name="model_type"
+                class="w-full border border-gray-300 rounded-md p-3 focus:outline-none"
+              >
+                <option value="linear_regression" {% if model_type=='linear_regression' %}selected{% endif %}>
+                  Linear Regression
+                </option>
+                <option value="random_forest" {% if model_type=='random_forest' %}selected{% endif %}>
+                  Random Forest Regressor
+                </option>
+                <option value="holt" {% if model_type=='holt' %}selected{% endif %}>Holt’s Linear</option>
+                <option value="exponential_smoothing" {% if model_type=='exponential_smoothing' %}selected{% endif %}>
+                  Exponential Smoothing
+                </option>
+              </select>
+            </div>
 
-          <div>
-            <label for="prediction_horizon" class="block text-sm font-medium text-gray-700 mb-1">
-              Prediction Horizon (Days)
-            </label>
-            <input
-              id="prediction_horizon" name="prediction_horizon" type="number" min="1"
-              placeholder="Number of days"
-              class="w-full border border-gray-300 rounded-md p-3 focus:outline-none"
-              value="{{ prediction_horizon or '' }}"
-            />
-          </div>
+            <div>
+              <label for="prediction_horizon" class="block text-sm font-medium text-gray-700 mb-1">
+                Prediction Horizon (Days)
+              </label>
+              <input
+                id="prediction_horizon" name="prediction_horizon" type="number" min="1"
+                placeholder="Number of days"
+                class="w-full border border-gray-300 rounded-md p-3 focus:outline-none"
+                value="{{ prediction_horizon or '' }}"
+              />
+            </div>
 
-          <button
-            type="submit"
-            class="w-full bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 transition duration-300"
-          >
-            Submit
-          </button>
-        </form>
+            <button
+              type="submit"
+              class="w-full bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 transition duration-300"
+            >
+              Submit
+            </button>
+          </form>
+        </div>
+
+        <!-- Metrics Section -->
+        <div class="md:w-1/2 flex flex-col gap-6">
+          {% if metrics %}
+            <div class="bg-white rounded-md px-8 py-6 shadow-md flex flex-col items-center text-center">
+              <h3 class="text-2xl font-bold mb-6">Model Evaluation Metrics</h3>
+              <ul class="space-y-4 text-lg">
+                <li><span class="font-semibold">R²:</span> {{ metrics.r2|round(4) }}</li>
+                <li><span class="font-semibold">MSE:</span> {{ metrics.mse|round(4) }}</li>
+                <li><span class="font-semibold">MAE:</span> {{ metrics.mae|round(4) }}</li>
+              </ul>
+            </div>
+
+            {% if model_params %}
+            <div class="bg-white rounded-md px-8 py-6 shadow-md flex flex-col items-center text-center">
+              <h3 class="text-2xl font-bold mb-6">Model Parameters</h3>
+              <ul class="space-y-2 text-base">
+                {% for key, value in model_params.items() %}
+                  <li><span class="font-semibold">{{ key }}:</span> {{ value }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+            
+          {% else %}
+            <div class="bg-gray-50 rounded-md p-6 text-center text-gray-600">
+              No predictions available. Please submit the form.
+            </div>
+          {% endif %}
+        </div>
+        
+
       </div>
 
-      <div class="md:w-1/2 flex flex-col gap-6">
-        {% if predictions %}
-          <h3 class="text-2xl font-semibold text-center">Predictions for {{ ticker_query }}</h3>
-
-          <div class="bg-white rounded-md px-6 py-4 shadow-md">
-            <h4 class="text-xl font-semibold mb-3">Predicted Prices</h4>
-            <ul class="space-y-2">
-              {% for val in predictions.future_predictions %}
-                <li class="text-lg">Day {{ loop.index }}: ${{ val|round(2) }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-
-          <!-- Metrics -->
-          <div class="bg-white rounded-md px-6 py-4 shadow-md">
-            <h4 class="text-xl font-semibold mb-3">Model Metrics</h4>
-            <ul class="space-y-2">
-              <li>R²:  {{ metrics.r2|round(4) }}</li>
-              <li>MSE: {{ metrics.mse|round(4) }}</li>
-              <li>MAE: {{ metrics.mae|round(4) }}</li>
-            </ul>
-          </div>
-        {% else %}
-          <div class="bg-gray-50 rounded-md p-6 text-center text-gray-600">
-            No predictions available. Please submit the form.
-          </div>
-        {% endif %}
+      <!-- Second Row: Full-width Graph -->
+      {% if plot_html %}
+      <div class="bg-white rounded-md p-8 shadow-md">
+        <h4 class="text-2xl font-bold mb-4 text-center">{{ ticker_query }} Price Graph</h4>
+        <div id="plotly-graph" class="h-[600px]">
+          {{ plot_html|safe }}
+        </div>
       </div>
+      {% endif %}
     </div>
   {% endblock %}
+  
 </body>
 </html>
