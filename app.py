@@ -133,13 +133,10 @@ def models():
             
             x_all_dates = train_mod.dates
             y_all_close = np.array(train_mod.close.flatten()).round(2)
-
+            
             # Model fitted predictions over training period
-            if isinstance(train_mod.model, (LinearRegression, RandomForestRegressor)):
-                fitted_preds = train_mod.model.predict(train_mod.date).flatten()
-            else:
-                fitted_preds = train_mod.model.fittedvalues  # Holt/ExponentialSmoothing
-            fitted_preds = fitted_preds.round(2)
+            fitted_preds = train_mod.model.predict(train_mod.date).flatten().round(2)
+           
             # Future dates
             last_date = x_all_dates[-1]
             future_dates = pd.date_range(start=last_date + pd.Timedelta(days=1), periods=prediction_horizon)

@@ -15,6 +15,7 @@ class TrainModel:
 
     def __init__(self, data, model_name, test_ratio=0.2):
         data.index = pd.to_datetime(data.index)
+        self.dates = data.index
         self.date = np.array((data.index - data.index.min()).days).reshape(-1, 1)
         self.close = data["Close"].values.reshape(-1, 1)
         self.model_name = model_name.lower()
@@ -59,24 +60,24 @@ class TrainModel:
         """
         if isinstance(self.model, LinearRegression):
             return {
-                "coefficients": [round(c, 4) for c in self.model.coef_.flatten()],
-                "intercept": round(float(self.model.intercept_), 4),
+                "Slope": [round(c, 4) for c in self.model.coef_.flatten()][0],
+                "Intercept": round(float(self.model.intercept_), 2),
             }
 
-        if isinstance(self.model, RandomForestRegressor):
-            return {
-                "feature_importances": [round(f, 4) for f in self.model.feature_importances_]
-            }
+        # if isinstance(self.model, RandomForestRegressor):
+        #     return {
+        #         "feature_importances": [round(f, 4) for f in self.model.feature_importances_]
+        #     }
 
         if isinstance(self.model, KNeighborsRegressor):
-            return {"n_neighbors": self.model.n_neighbors}
+            return {"Neighbors Used": self.model.n_neighbors}
 
         if isinstance(self.model, SVR):
             return {
-                "kernel": self.model.kernel,
+                "Kernel": self.model.kernel,
                 "C": self.model.C,
-                "epsilon": self.model.epsilon,
-                "gamma": self.model.gamma,
+                "Epsilon": self.model.epsilon,
+                "Gamma": self.model.gamma,
             }
 
         return None
