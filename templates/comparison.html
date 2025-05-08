@@ -87,7 +87,10 @@ function fetchComparisonData(tickers, period = "1mo") {
             return Promise.all([
                 fetch(`/stock/${ticker}`).then(response => response.json()),
                 fetch(`/stock/${ticker}/history_data?period=${period}`).then(response => response.json())
-            ]).then(([info, historyData]) => {
+            ])
+            .then(([info, historyData]) => {
+                const hasValidHistory = historyData && Array.isArray(historyData.history) && historyData.history.length > 0;
+                console.log(`Ticker: ${ticker}, History Length:`, historyData.history?.length || 0);
                 return {
                     ticker: ticker.toUpperCase(),
                     name: (info.name && info.name !== "N/A") ? info.name : ticker.toUpperCase(),
@@ -96,9 +99,10 @@ function fetchComparisonData(tickers, period = "1mo") {
                     exchange: info.exchange || 'N/A',
                     sector: info.sector || 'N/A',
                     industry: info.industry || 'N/A',
-                    history: historyData.history || []
+                    history: hasValidHistory ? historyData.history : []
                 };
-            }).catch(err => {
+            })
+            .catch(err => {
                 console.error('Error fetching data for', ticker, err);
                 return {
                     ticker: ticker.toUpperCase(),
@@ -115,8 +119,8 @@ function fetchComparisonData(tickers, period = "1mo") {
     );
 }
 
-function renderComparisonChart(results, period) {
-    var traces = results.map(function(item) {
+async function renderComparisonChart(results, period) {
+    const traces = results.map(item => {
         if (item.history.length === 0) return null;
         return {
             x: item.history.map(point => point.date),
@@ -126,7 +130,12 @@ function renderComparisonChart(results, period) {
         };
     }).filter(trace => trace !== null);
 
-    var layout = {
+    if (traces.length === 0) {
+        document.getElementById('comparisonChart').innerHTML = '<p class="text-center text-red-600">No valid data available for plotting.</p>';
+        return;
+    }
+
+    const layout = {
         title: `Historical Close Prices (${period.toUpperCase()})`,
         xaxis: { title: 'Date' },
         yaxis: { title: 'Close Price (USD)' }
@@ -161,7 +170,10 @@ document.getElementById('comparisonForm').addEventListener('submit', function(e)
                                 '<td class="py-2 px-4 border">' + item.industry + '</td>';
                 tableBody.appendChild(row);
             });
-
+            const failedTickers = results.filter(r => r.history.length === 0).map(r => r.ticker);
+            if (failedTickers.length > 0) {
+                alert(`Could not load historical data for: ${failedTickers.join(", ")}`);
+            }
             renderComparisonChart(results, "1mo");
 
             document.getElementById('comparisonResults').classList.remove('hidden');

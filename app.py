@@ -170,16 +170,26 @@ def models():
 
             plot_html = pio.to_html(fig, full_html=False)
 
-    return render_template('predict.html', 
-        ticker_query=ticker_query, 
-        time_period=time_period, 
-        model_type=model_type, 
-        prediction_horizon=prediction_horizon, 
-        predictions=predictions,
-        metrics=metrics,
-        model_params=train_mod.get_model_params(),
-        plot_html=plot_html, 
-    )
+        return render_template('predict.html', 
+            ticker_query=ticker_query, 
+            time_period=time_period, 
+            model_type=model_type, 
+            prediction_horizon=prediction_horizon, 
+            predictions=predictions,
+            metrics=metrics,
+            model_params=train_mod.get_model_params(),
+            plot_html=plot_html, 
+        )
+    else:
+        return render_template('predict.html', 
+            ticker_query=ticker_query, 
+            time_period=time_period, 
+            model_type=model_type, 
+            prediction_horizon=prediction_horizon, 
+            predictions=predictions,
+            metrics=metrics,
+            plot_html=plot_html, 
+        )
 
 
 
@@ -395,7 +405,7 @@ def get_stock_history_data(ticker):
 
         historical_data["Close"] = historical_data["Close"].round(2)
         historical_data["Date"] = historical_data.index
-
+        historical_data["Close"].replace({np.nan: None}, inplace=True)
         if period == "1d":
             # Include time for intraday data
             dates = historical_data["Date"].dt.strftime("%Y-%m-%d %H:%M").tolist()
@@ -403,8 +413,9 @@ def get_stock_history_data(ticker):
             dates = historical_data["Date"].dt.strftime("%Y-%m-%d").tolist()
 
         closes = historical_data["Close"].tolist()
+        history = [{"date": d, "close": c} for d, c in zip(dates, closes)]
 
-        return jsonify({"history": [{"date": d, "close": c} for d, c in zip(dates, closes)]})
+        return jsonify({"history": history})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
