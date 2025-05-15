@@ -1,33 +1,94 @@
 # CS 222 Project Group 78
 #### Group Members: Advay Kadam, Michael Ling, Jeslin Paulraj, Soham Phargade
 #### Mentor: Simran Malhotra
-
-### Initial Set-Up
-##### `python3 -m venv venv`
-##### `source venv/bin/activate`
-##### `pip install flask yfinance pandas scikit-learn`
-##### `npm install react-router-dom`
-##### `npm install`
-##### `export NODE_OPTIONS=--openssl-legacy-provider`
-##### `npm start`
-
-##### go to localhost:3000 or http://10.195.123.81:3000
-
-### Run Instructions
-##### cd to team-78-project folder
-<!-- ##### `export NODE_OPTIONS=--openssl-legacy-provider`  -->
-<!-- ##### `npm start` -->
-<!-- pip install pysqlite3 -->
-###### cd into venv folder
-###### python app.py
-
-<!-- venvYOURNAME@wirelessprv-10-195-123-81 team-78-project %  ___ is an example of what terminal prompt should look like-->
-
-##### go to localhost:3000 or http://10.195.123.81:3000
-
-###### running npm start on its own may not load page properly
-###### its good practice after a few changes to quit (command-c) and re-run using npm start 
-to get out of virtual env do deactivate and then when you run python app.py it will go back in venv
-
-
 <!-- Command + Shift + V in VSCode for Preview -->
+
+# Stock Price Forecasting Dashboard
+
+## Introduction
+### What is the Stock Price Forecasting Dashboard?
+Stock pricing and prediction dates back centuries, but now with modern statistical modeling and machine learning techniques, this concept allows users to mathematically predict market performance. Hence, our stock price forecasting dashboard allows users to select a stock of their choice and train an ML model of their choice – displaying the results for the model visually and on different time scales. 
+
+### Key Features
+- View both the historical and latest stock prices and data (Past day, Last 5 days, 1 month, etc.).
+- View a summary information for selected stocks.
+- Train ML models on past data to forecast future prices.
+- Specify forecast intervals.
+- Save trained models for future analysis.
+- Compare key performance indicators (KPIs) of different models.
+- Compare various stocks side by side.
+
+Please review the project proposal for more details.
+
+---
+
+## Technical Architecture
+### Backend
+The backend is built using Python and Flask and the following libraries:
+- **Yahoo Finance (`yfinance`)** for stock data retrieval.
+- **NumPy, Pandas, Scikit-Learn** for data handling and processing.
+- **Statsmodels** for advanced statistical modeling.
+- **Flask API** to serve data to the frontend.
+- **SQLite** for database management.
+
+Stock Prediction Models we use:
+- **Linear Regression** (Scikit-Learn)
+- **Exponential Smoothing** (Statsmodels)
+- **ARIMA** (Statsmodels)
+- **Facebook Prophet** (Time-series forecasting)
+---
+
+### Frontend
+We used **React.js, HTML, and Tailwind CSS** along with
+- **React Components** for modular UI development.
+- **Tailwind CSS** for flexible styling.
+- **React Testing Library & Cypress** for frontend testing.
+
+Users can interact with the dashboard to analyze stock trends, train models, and visualize forecasts.
+
+---
+
+### Continuous Integration & GitHub Workflow
+- **GitHub Actions** for testing and enforcing style/lint checks (`ESLint` for JavaScript, `Pylint` for Python).
+- **GitHub Workflow**:
+  - Main branch for stable code.
+  - Individual branches for team members.
+  - Code is developed, tested, and merged into `main` after passing integration tests.
+
+---
+
+## Environment Setup
+### Initial Virtual Environment Installation
+Go to the source directory and run: ``` python3 -m venv ./venv
+
+Starting The Virtual Environment
+
+for macOS/Linux: source venv/bin/activate  
+for Windows: venv\Scripts\activate  
+
+Development + Package Updates:
+
+To enable package updates, run:
+pip install pipreqs
+
+To update packages, execute:
+pipreqs . --force
+
+To install dependencies:
+pip install -r requirements.txt
+
+Project Instructions
+
+Fetch Stock Data:
+python src/data_fetch.py <stock_symbol>
+
+Train a Model:
+python src/model_train.py <stock_symbol> <model_name>
+
+Get Forecasted Prices:
+python src/predict.py <stock_symbol> <model_name> <time_interval>
+
+Save and Retrieve Favorite Stocks:
+
+python src/user_preferences.py save <stock_symbol>
+python src/user_preferences.py retrieve
