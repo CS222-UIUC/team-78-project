@@ -5,6 +5,17 @@
 
 # Stock Price Forecasting Dashboard
 
+### Team Members & Roles
+Our team is divided into frontend and backend roles:
+
+- **Frontend Team**:
+  - **Jeslin** - UI development, frontend styling, API integration.
+  - **Soham** - UI development, API integration, assisting backend.
+
+- **Backend Team**:
+  - **Advay** - Data visualization, backend implementation, machine learning.
+  - **Michael** - Data cleaning, backend implementation, machine learning.
+
 ## Introduction
 ### What is the Stock Price Forecasting Dashboard?
 Stock pricing and prediction dates back centuries, but now with modern statistical modeling and machine learning techniques, this concept allows users to mathematically predict market performance. Hence, our stock price forecasting dashboard allows users to select a stock of their choice and train an ML model of their choice – displaying the results for the model visually and on different time scales. 
@@ -31,11 +42,11 @@ We used Python and Flask and the following libraries:
 - **Flask API** for serving the data to the frontend.
 - **SQLite** for database management.
 
-Stock Prediction Models we use:
-- **Linear Regression** (Scikit-Learn)
-- **Exponential Smoothing** (Statsmodels)
-- **ARIMA** (Statsmodels)
-- **Facebook Prophet** (Time-series forecasting)
+Stock Prediction Models we use using Scikit-Learn:
+- **Linear Regression** 
+- **Random Forest Regressor** 
+- **k-Nearest Neighbors Regressor** 
+- **Support Vector Regression** 
 ---
 
 ### Frontend
