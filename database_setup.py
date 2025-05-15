@@ -30,8 +30,6 @@ def add_user(username, plaintext_password, email):
         print(f"User '{username}' or email '{email}' already exists!")
 
 rows = cursor.execute("SELECT * FROM users").fetchall()
-for row in rows:
-    print(row)
 
 connection.close()
 print("All Done! db and user setup is success!")
