@@ -119,13 +119,10 @@ def models():
         time_period = request.form.get('time_period')  
         model_type = request.form.get('model_type') 
         prediction_horizon = int(request.form.get('prediction_horizon'))  
-        print (ticker_query, time_period, model_type, prediction_horizon)
-        print (predictions)
 
         if ticker_query and time_period and model_type and prediction_horizon:
             stock_data = yf.Ticker(ticker_query).history(period = time_period)
             stock_data['Close'].dropna(inplace=True)
-            print(stock_data)
             train_mod = TrainModel(stock_data, model_type)
             train_mod.generate_model()
             predictions = train_mod.make_predictions(prediction_horizon)
