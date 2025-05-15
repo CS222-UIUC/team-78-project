@@ -1,9 +1,9 @@
-# CS 222 Project Group 78
+# Stock Price Forecasting Dashboard
+## CS 222 Project Group 78
 #### Group Members: Advay Kadam, Michael Ling, Jeslin Paulraj, Soham Phargade
 #### Mentor: Simran Malhotra
 <!-- Command + Shift + V in VSCode for Preview -->
 
-# Stock Price Forecasting Dashboard
 
 ### Team Members & Roles
 Our team is divided into frontend and backend roles:
