@@ -24,11 +24,11 @@ Please review the project proposal for more details.
 
 ## Technical Architecture
 ### Backend
-The backend is built using Python and Flask and the following libraries:
-- **Yahoo Finance (`yfinance`)** for stock data retrieval.
-- **NumPy, Pandas, Scikit-Learn** for data handling and processing.
-- **Statsmodels** for advanced statistical modeling.
-- **Flask API** to serve data to the frontend.
+We used Python and Flask and the following libraries:
+- **Yahoo Finance (`yfinance`)** for retrieving the stock data.
+- **NumPy, Pandas, Scikit-Learn** for processing and handling data.
+- **Statsmodels** for statistical modeling.
+- **Flask API** for serving the data to the frontend.
 - **SQLite** for database management.
 
 Stock Prediction Models we use:
@@ -43,12 +43,9 @@ We used **React.js, HTML, and Tailwind CSS** along with
 - **React Components** for modular UI development.
 - **Tailwind CSS** for flexible styling.
 - **React Testing Library & Cypress** for frontend testing.
-
-Users can interact with the dashboard to analyze stock trends, train models, and visualize forecasts.
-
 ---
 
-### Continuous Integration & GitHub Workflow
+### Continuous Integration/Deployment (CI/CD) & GitHub Workflow
 - **GitHub Actions** for testing and enforcing style/lint checks (`ESLint` for JavaScript, `Pylint` for Python).
 - **GitHub Workflow**:
   - Main branch for stable code.
