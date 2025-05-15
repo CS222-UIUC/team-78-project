@@ -22,10 +22,9 @@ Stock pricing and prediction dates back centuries, but now with modern statistic
 
 ### Key Features
 - View both the historical and latest stock prices and data (Past day, Last 5 days, 1 month, etc.).
-- View a summary information for selected stocks.
+- View summary information for selected stocks.
 - Train ML models on past data to forecast future prices.
 - Specify forecast intervals.
-- Save trained models for future analysis.
 - Compare key performance indicators (KPIs) of different models.
 - Compare various stocks side by side.
 
